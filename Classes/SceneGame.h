@@ -2,7 +2,6 @@
 #define __SCENE_GAME_H__
 
 #include "cocos2d.h"
-#include "AppCommon.h"
 #include "ICardManager.h"
 #include "CardManager.h"
 #include "BottomCardZone.h"
@@ -20,8 +19,6 @@ public:
     // ²Ëµ¥»Øµ÷
     void menuBackCallback(cocos2d::Ref* pSender);
 	void menuZhunbeiCallback(cocos2d::Ref* pSender);
-	void menuTishiCallback(cocos2d::Ref* pSender);
-	void menuChongxuanCallback(cocos2d::Ref* pSender);
 	void menuBuchuCallback(cocos2d::Ref* pSender);
 	void menuChuPaiCallback(cocos2d::Ref* pSender);
 

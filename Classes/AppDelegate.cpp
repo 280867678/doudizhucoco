@@ -1,5 +1,5 @@
 #include "AppDelegate.h"
-#include "SceneMenu.h"
+#include "SceneGame.h"
 
 USING_NS_CC;
 
@@ -41,7 +41,7 @@ bool AppDelegate::applicationDidFinishLaunching() {
 	frameCache->addSpriteFramesWithFile("poker_b.plist","poker_b.png");
 
     // ÔËÐÐ
-    auto scene = SceneMenu::createScene();
+    auto scene = SceneGame::createScene();
     director->runWithScene(scene);
 
     return true;

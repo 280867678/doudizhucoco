@@ -39,7 +39,6 @@ bool CardManager::dealer(CardInfo info)
 	auto card = Card::create(info);
 	this->addChild(card, 100-info._num);
 	card->SetTouchEnabled();
-	card->setScale(0.8);
 
 	sortAllChildren();
 

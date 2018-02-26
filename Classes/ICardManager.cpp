@@ -28,13 +28,9 @@ bool ICardManager::init()
 	_exhibitionZone->setPosition(0, -120);
 	this->addChild(_exhibitionZone);
 
-	auto back = Sprite::createWithSpriteFrameName("b/poker_back.png");
-	back->setScale(0.3);
-	this->addChild(back,1);
-
-	_cardCounts = Label::createWithSystemFont("0", "ËÎÌו", 150);
-	_cardCounts->setPosition(70,110);
-	back->addChild(_cardCounts,1);
+	_cardCounts = Label::createWithSystemFont("0", "ËÎÌו", 24);
+	_cardCounts->setPosition(0,0);
+	this->addChild(_cardCounts,1);
 
     return true;
 }

@@ -1,5 +1,4 @@
 #include "SceneGame.h"
-#include "SceneMenu.h"
 
 USING_NS_CC;
 
@@ -23,81 +22,60 @@ bool SceneGame::init()
     Size visibleSize = Director::getInstance()->getVisibleSize();
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
 
-    // 背景----------------------------------------------
-	auto bg = Sprite::create("bg_table.jpg");
-	bg->setPosition(Vec2(visibleSize.width/2 + origin.x, visibleSize.height/2 + origin.y));
-	this->addChild(bg, 0);
+	// 创建主菜单---------------------------------------------
+	auto itemZhunbei = MenuItemFont::create("ZhunBei", CC_CALLBACK_1(SceneGame::menuZhunbeiCallback, this));
+	itemZhunbei->setPosition(750, 50);
 
-	// 创建返回菜单---------------------------------------------
-	auto itemBack = createCustomMenuItem("item_back.png", "item_back.png");
-	itemBack->setCallback(CC_CALLBACK_1(SceneGame::menuBackCallback, this));
-	itemBack->setPosition(visibleSize.width/2+200, visibleSize.height-50);
+	auto itemBack = MenuItemFont::create("Quit", CC_CALLBACK_1(SceneGame::menuBackCallback, this));
+	itemBack->setPosition(850, 50);
 
-    auto menuBack = Menu::create(itemBack, NULL);
+    auto menuBack = Menu::create(itemZhunbei, itemBack, NULL);
 	menuBack->setPosition(origin);
     this->addChild(menuBack, 1);
 
-	// 创建准备菜单---------------------------------------------
-	auto itemZhunbei = createCustomMenuItem("item_zhunbei.png", "item_zhunbei.png");
-	itemZhunbei->setCallback(CC_CALLBACK_1(SceneGame::menuZhunbeiCallback, this));
-
-	_menuZhunbei = Menu::create(itemZhunbei, NULL);
-	this->addChild(_menuZhunbei, 1);
-
 	// 创建游戏菜单---------------------------------------------
-	auto itemTishi = createCustomMenuItem("item_tishi.png", "item_tishi_d.png");
-	itemTishi->setCallback(CC_CALLBACK_1(SceneGame::menuTishiCallback, this));
-	itemTishi->setPosition(-400 , -180);
+	auto itemBuchu = MenuItemFont::create("BuChu", CC_CALLBACK_1(SceneGame::menuBuchuCallback, this));
+	itemBuchu->setPosition(-200 , 30);
 
-	auto itemChongxuan = createCustomMenuItem("item_chongxuan.png", "item_chongxuan_d.png");
-	itemChongxuan->setCallback(CC_CALLBACK_1(SceneGame::menuChongxuanCallback, this));
-	itemChongxuan->setPosition(-200 , -180);
+	auto itemChupai = MenuItemFont::create("ChuPai", CC_CALLBACK_1(SceneGame::menuChuPaiCallback, this));
+	itemChupai->setPosition(0 , 30);
 
-	auto itemBuchu = createCustomMenuItem("item_buchu.png", "item_buchu_d.png");
-	itemBuchu->setCallback(CC_CALLBACK_1(SceneGame::menuBuchuCallback, this));
-	itemBuchu->setPosition(0 , -180);
-
-	auto itemChupai = createCustomMenuItem("item_chupai.png", "item_chupai_d.png");
-	itemChupai->setCallback(CC_CALLBACK_1(SceneGame::menuChuPaiCallback, this));
-	itemChupai->setPosition(200 , -180);
-
-	_menuGame = Menu::create(itemTishi, itemChongxuan, itemBuchu, itemChupai, NULL);
-	_menuGame->setScale(0.7);
+	_menuGame = Menu::create(itemBuchu, itemChupai, NULL);
 	//_menuGame->setPosition(Vec2(visibleSize.width/2 + origin.x, visibleSize.height/2 + origin.y));
 	this->addChild(_menuGame, 1);
 	_menuGame->setVisible(false);
 
 	// 玩家头像----------------------------------------------
-	auto player1 = Sprite::create("touxiang_dizhu.png");
-	player1->setScale(0.8);
-	player1->setPosition(player1->getContentSize().width/2, player1->getContentSize().height/2 + 200 - 20);
+	auto player1 = Label::createWithSystemFont("D", "arial", 24);
+	player1->setColor(Color3B(255,0,0));
+	player1->setPosition(100, 300);
 	this->addChild(player1, 0);
 
-	auto player2 = Sprite::create("touxiang_nongmin.png");
-	player2->setScale(0.8);
-	player2->setPosition(visibleSize.width - player2->getContentSize().width/2, visibleSize.height - player2->getContentSize().height/2 + 10);
+	auto player2 = Label::createWithSystemFont("N", "arial", 24);
+	player2->setColor(Color3B(255,0,0));
+	player2->setPosition(100, 500);
 	this->addChild(player2, 0);
 
-	auto player3 = Sprite::create("touxiang_nongmin.png");
-	player3->setScale(0.8);
-	player3->setPosition(player3->getContentSize().width/2, visibleSize.height - player3->getContentSize().height/2 + 10);
+	auto player3 = Label::createWithSystemFont("N", "arial", 24);
+	player3->setColor(Color3B(255,0,0));
+	player3->setPosition(100, 400);
 	this->addChild(player3, 0);
 
 	// 牌堆-----------------------------------------------
 	_cardManager1 = CardManager::create();
-	_cardManager1->setPosition(visibleSize.width/2, visibleSize.height/6);
+	_cardManager1->setPosition(480, 250);
 	this->addChild(_cardManager1, 1);
 
 	_cardManager2 = ICardManager::create();
-	_cardManager2->setPosition(800,485);
+	_cardManager2->setPosition(200,500);
 	this->addChild(_cardManager2, 1);
 
 	_cardManager3 = ICardManager::create();
-	_cardManager3->setPosition(150,485);
+	_cardManager3->setPosition(200,400);
 	this->addChild(_cardManager3, 1);
 
 	_bottomCardZone = BottomCardZone::create();
-	_bottomCardZone->setPosition(450, 480);
+	_bottomCardZone->setPosition(450, 50);
 	this->addChild(_bottomCardZone, 1);
 
 	initCards();
@@ -109,7 +87,7 @@ bool SceneGame::init()
 
 void SceneGame::menuBackCallback(Ref* pSender)
 {
-	Director::getInstance()->replaceScene(SceneMenu::createScene());
+	Director::getInstance()->end();
 }
 
 void SceneGame::menuZhunbeiCallback(Ref* pSender)
@@ -117,16 +95,6 @@ void SceneGame::menuZhunbeiCallback(Ref* pSender)
 	((MenuItem*)pSender)->setVisible(false);
     _menuGame->setVisible(true);
 	faPai();
-}
-
-void SceneGame::menuTishiCallback(Ref* pSender)
-{
-
-}
-
-void SceneGame::menuChongxuanCallback(Ref* pSender)
-{
-
 }
 
 void SceneGame::menuBuchuCallback(Ref* pSender)

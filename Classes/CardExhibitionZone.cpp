@@ -34,7 +34,6 @@ void CardExhibitionZone::chuPai(std::vector<CardInfo> arrayIndexs)
 	for (int i=0; i<arrayIndexs.size(); ++i)
 	{
 		auto card = Card::create(arrayIndexs.at(i));
-		card->setScale(0.5);
 		this->addChild(card, 100-arrayIndexs.at(i)._num);
 	}
 

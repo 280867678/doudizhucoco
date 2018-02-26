@@ -24,49 +24,12 @@ bool Card::init(CardInfo info)
 
 	_info = info;
 
-	auto cardFront = Sprite::createWithSpriteFrameName("b/bg.png");
+	char num[10] = { 0 };
+	sprintf(num, "%d", _info._num);
+
+	auto cardFront = Label::createWithSystemFont(num, "arial", 24);
 	this->addChild(cardFront);
 	_size = cardFront->getContentSize();
-
-	if (_info._num == CardNum::NUM_DW)
-	{
-		auto cardNum = Sprite::createWithSpriteFrameName("b/smalltag_4.png");
-		cardNum->setPosition(-50,10);
-		this->addChild(cardNum);
-
-		auto cardTag = Sprite::createWithSpriteFrameName("b/bigtag_6.png");
-		cardTag->setPosition(20,-30);
-		this->addChild(cardTag);
-	} 
-	else if (_info._num == CardNum::NUM_XW)
-	{
-		auto cardNum = Sprite::createWithSpriteFrameName("b/smalltag_5.png");
-		cardNum->setPosition(-50,10);
-		this->addChild(cardNum);
-
-		auto cardTag = Sprite::createWithSpriteFrameName("b/bigtag_6.png");
-		cardTag->setPosition(20,-30);
-		this->addChild(cardTag);
-	}
-	else 
-	{
-		std::stringstream strNum;
-		strNum << "b/black_" << _info._num << ".png";
-		auto cardNum = Sprite::createWithSpriteFrameName(strNum.str());
-		cardNum->setPosition(-50,70);
-		this->addChild(cardNum);
-
-		std::stringstream strTag;
-		strTag << "b/bigtag_" << _info._tag << ".png";
-		auto cardSmallTag = Sprite::createWithSpriteFrameName(strTag.str());
-		cardSmallTag->setScale(0.5);
-		cardSmallTag->setPosition(-50,20);
-		this->addChild(cardSmallTag);
-
-		auto cardTag = Sprite::createWithSpriteFrameName(strTag.str());
-		cardTag->setPosition(20,-30);
-		this->addChild(cardTag);
-	}
 
 	_isSelected = false;
 

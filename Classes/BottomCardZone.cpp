@@ -22,11 +22,6 @@ bool BottomCardZone::init()
         return false;
     }
 
-	setScale(0.5);
-
-	auto bg = Sprite::create("bottomCardZone.png");
-	this->addChild(bg);
-
     return true;
 }
 
@@ -36,7 +31,6 @@ void BottomCardZone::Show(CardInfo cardInfo)
 
 	//Ìí¼Ó¾«Áé
 	auto card = Card::create(cardInfo);
-	card->setScale(0.6);
 	this->addChild(card, 100-cardInfo._num);
 
 	sortAllChildren();

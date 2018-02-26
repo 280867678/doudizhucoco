@@ -5,7 +5,7 @@
 
 enum CardNum // ÅÆÖµ
 {
-	NUM_1 = 0,
+	NUM_1 = 1,
 	NUM_2,
 	NUM_3,
 	NUM_4,
