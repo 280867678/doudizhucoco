@@ -1,5 +1,5 @@
 #include "AppDelegate.h"
-#include "SceneGame.h"
+#include "GameScene.h"
 
 USING_NS_CC;
 
@@ -28,20 +28,19 @@ bool AppDelegate::applicationDidFinishLaunching() {
     auto glview = director->getOpenGLView();
     if(!glview) {
         glview = GLViewImpl::create("My Game");
-		glview->setFrameSize(960,540);
         director->setOpenGLView(glview);
     }
 
-    // 设置属性
+    // turn on display FPS
     director->setDisplayStats(true);
+
+    // set FPS. the default value is 1.0/60 if you don't call this
     director->setAnimationInterval(1.0 / 60);
 
-	// 加载游戏需要资源
-	auto frameCache = SpriteFrameCache::getInstance();
-	frameCache->addSpriteFramesWithFile("poker_b.plist","poker_b.png");
+    // create a scene. it's an autorelease object
+    auto scene = GameScene::createScene();
 
-    // 运行
-    auto scene = SceneGame::createScene();
+    // run
     director->runWithScene(scene);
 
     return true;
