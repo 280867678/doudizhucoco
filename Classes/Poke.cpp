@@ -101,8 +101,7 @@ void Poke::onTouchMoved(Touch* touch, Event* event)
 
 void Poke::click()
 {
-	GameScene* scene = (GameScene*)Director::getInstance()->getRunningScene();
-	CCArray* arr = scene->getArrPlayerOut();
+	CCArray* arr = _gameMain->getArrPlayerOut();
 
 	if (_isSelected)
 	{
@@ -115,4 +114,16 @@ void Poke::click()
 		arr->addObject(this);
 	}
 	_isSelected = !_isSelected;
+}
+
+void Poke::unSelect()
+{
+	CCArray* arr = _gameMain->getArrPlayerOut();
+
+	if (_isSelected)
+	{
+		setPosition(_position.x,_position.y -20);
+		arr->removeObject(this);
+	}
+	_isSelected = false;
 }

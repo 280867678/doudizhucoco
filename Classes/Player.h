@@ -59,6 +59,7 @@ public:
 	}
 };
 
+class GameScene;
 
 //
 // ÕÊº“¿‡
@@ -75,8 +76,9 @@ public:
 	void updateCards();
 	void clearCards();
 
-	void FaPai(PokeInfo info);
+	void FaPai(GameScene* scene, PokeInfo info);
 	void ChuPai();
+	void BuChu();
 
 protected:
 

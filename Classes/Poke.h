@@ -52,6 +52,8 @@ struct PokeInfo
 	}
 };
 
+class GameScene;
+
 class Poke : public cocos2d::Sprite
 {
 public:
@@ -64,6 +66,8 @@ public:
 
 	bool isSelected() { return _isSelected; };
 	void click();
+	// 取消选中
+	void unSelect();
 
 	PokeInfo getInfo() { return _info; };
 
@@ -74,11 +78,13 @@ public:
 	virtual void onTouchCancelled(cocos2d::Touch* touch, cocos2d::Event* event);
 	virtual void onTouchMoved(cocos2d::Touch* touch, cocos2d::Event* event);
 
+	CC_SYNTHESIZE(GameScene*,_gameMain,GameMain);
+
+	PokeInfo	_info;
+
 protected:
 
 	bool		_isSelected;
-
-	PokeInfo	_info;
 
 	cocos2d::Size _size;
 };

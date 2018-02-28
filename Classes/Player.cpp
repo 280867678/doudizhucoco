@@ -1,4 +1,5 @@
 #include "Player.h"
+#include "GameScene.h"
 
 USING_NS_CC;
 
@@ -48,7 +49,7 @@ bool Player::init(std::string name, bool isDiZhu, bool isHero)
     return true;
 }
 
-void Player::FaPai(PokeInfo info)
+void Player::FaPai(GameScene* scene, PokeInfo info)
 {
 	_vecPokeInfo.push_back(info);
 
@@ -59,6 +60,7 @@ void Player::FaPai(PokeInfo info)
 		card->setPosition(0, -50);
 		this->addChild(card, 100-info._num);
 		card->SetTouchEnabled();
+		card->setGameMain(scene);
 	}
 
 	sortAllChildren();
@@ -119,7 +121,6 @@ void Player::updateCards()
 	text << _vecPokeInfo.size();
 	_labelPokeCount->setString(text.str());
 
-	int count = _children.size();
 	for (int i=0; i<_children.size(); i++)
 	{
 		Poke* card = dynamic_cast<Poke*>(_children.at(i));
@@ -133,4 +134,16 @@ void Player::updateCards()
 void Player::clearCards()
 {
 	_exhibitionZone->removeAllChildrenWithCleanup(true);
+}
+
+void Player::BuChu()
+{
+	for (int i=0; i<_children.size(); i++)
+	{
+		Poke* card = dynamic_cast<Poke*>(_children.at(i));
+		if (card != NULL)
+		{
+			card->unSelect();
+		}
+	}
 }

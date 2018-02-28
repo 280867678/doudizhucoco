@@ -4,6 +4,15 @@
 #include "cocos2d.h"
 #include "Player.h"
 
+bool IsContinuous(std::vector<int>& vec);
+bool IsContinuous(int arr[], int len);
+
+// 判断是否连续
+bool CheckContinuous(cocos2d::CCArray* vecPoke);
+
+// 判断是否都小于2
+bool IsLessTwo(cocos2d::CCArray* vecPoke);
+
 enum  CARD_TYPE
 {
 	SINGLE_CARD =1,			//单牌
@@ -11,7 +20,7 @@ enum  CARD_TYPE
 	THREE_CARD,				//3不带
 	BOMB_CARD,				//炸弹
 	THREE_ONE_CARD,			//3带1
-	THREE_TEO_CARD,			//3带2
+	THREE_TWO_CARD,			//3带2
 	BOMB_TWO_CARD,			//四个带2张单牌
 	BOMB_TWOOO_CARD,		//四个带2对
 	CONNECT_CARD,			//连牌
