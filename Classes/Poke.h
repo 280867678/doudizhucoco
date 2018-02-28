@@ -5,9 +5,7 @@
 
 enum PokeNum // ÅÆÖµ
 {
-	NUM_1 = 0,
-	NUM_2,
-	NUM_3,
+	NUM_3 = 0,
 	NUM_4,
 	NUM_5,
 	NUM_6,
@@ -18,6 +16,8 @@ enum PokeNum // ÅÆÖµ
 	NUM_J,
 	NUM_Q,
 	NUM_K,
+	NUM_A,
+	NUM_2,
 	NUM_XW,
 	NUM_DW
 };

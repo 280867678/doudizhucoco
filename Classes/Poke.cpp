@@ -16,8 +16,6 @@ Poke* Poke::create(PokeInfo info)
 }
 
 char* poke_text[] = {
-	"A",
-	"2",
 	"3",
 	"4",
 	"5",
@@ -29,8 +27,10 @@ char* poke_text[] = {
 	"J",
 	"Q",
 	"K",
-	"g",
-	"G",
+	"A",
+	"2",
+	"w",
+	"W",
 };
 
 bool Poke::init(PokeInfo info)

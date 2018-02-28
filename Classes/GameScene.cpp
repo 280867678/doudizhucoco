@@ -34,7 +34,38 @@ bool GameScene::init()
     Size visibleSize = Director::getInstance()->getVisibleSize();
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
 
-    // 菜单
+	// 重开菜单
+
+	auto itemRestart = MenuItemFont::create("Game over! Press this button to restart!", CC_CALLBACK_1(GameScene::menuRestartCallback, this));
+	itemRestart->setFontSize(28);
+	itemRestart->setColor(Color3B(255, 0, 0));
+
+	_restartMenu = Menu::create(itemRestart, NULL);
+	this->addChild(_restartMenu, 1);
+	_restartMenu->setVisible(false);
+
+	// 抢地主菜单
+
+	auto itemBuQiang = MenuItemFont::create("BuQiang", CC_CALLBACK_1(GameScene::menuBuQiangCallback, this));
+	itemBuQiang->setFontSize(28);
+	itemBuQiang->setPosition(-150, -300);
+
+	auto item1Fen = MenuItemFont::create("1$", CC_CALLBACK_1(GameScene::menuBuQiangCallback, this));
+	item1Fen->setFontSize(28);
+	item1Fen->setPosition(-50, -300);
+
+	auto item2Fen = MenuItemFont::create("2$", CC_CALLBACK_1(GameScene::menuBuQiangCallback, this));
+	item2Fen->setFontSize(28);
+	item2Fen->setPosition(50, -300);
+
+	auto item3Fen = MenuItemFont::create("3$", CC_CALLBACK_1(GameScene::menuBuQiangCallback, this));
+	item3Fen->setFontSize(28);
+	item3Fen->setPosition(150, -300);
+
+	_qiangDiZhuMenu = Menu::create(itemBuQiang, item1Fen, item2Fen, item3Fen, NULL);
+	this->addChild(_qiangDiZhuMenu, 1);
+
+    // 出牌菜单
 
 	auto itemBuChu = MenuItemFont::create("BuChu", CC_CALLBACK_1(GameScene::menuBuChuCallback, this));
 	itemBuChu->setFontSize(28);
@@ -44,10 +75,11 @@ bool GameScene::init()
 	itemChuPai->setFontSize(28);
 	itemChuPai->setPosition(100, -300);
 
-    _chuPaiMenu = Menu::create();
+	_chuPaiMenu = Menu::create();
 	_chuPaiMenu->addChild(itemBuChu,2,0);
 	_chuPaiMenu->addChild(itemChuPai,2,1);
-    this->addChild(_chuPaiMenu, 1);
+	this->addChild(_chuPaiMenu, 1);
+	_chuPaiMenu->setVisible(false);
 
 	// 玩家
 
@@ -62,6 +94,11 @@ bool GameScene::init()
 	_player3 = Player::create("P3", false, false);
 	_player3->setPosition(100, 600);
 	this->addChild(_player3);
+
+	// 底牌区
+	_diPai = PokeExhibitionZone::create();
+	_diPai->setPosition(300, 50);
+	this->addChild(_diPai, 1);
 
 	// 初始化牌堆
 	initCards();
@@ -78,6 +115,7 @@ bool GameScene::init()
 		{
 			//底牌
 			//_bottomCardZone->Show(_pokeInfo.at(_i));
+			_vecDiPai.push_back(_pokeInfo.at(i));
 		}
 		else
 		{
@@ -96,6 +134,8 @@ bool GameScene::init()
 			}
 		}
 	}
+
+	_diPai->chuPai(_vecDiPai);
 	
 	// 自动判断牌型
 	schedule(schedule_selector(GameScene::OutCard),0.5);
@@ -126,16 +166,42 @@ void GameScene::initCards()
 	_pokeInfo.push_back(info);
 }
 
+void GameScene::menuRestartCallback(Ref* pSender)
+{
+	Director::getInstance()->replaceScene(GameScene::createScene());
+}
+
+void GameScene::menuBuQiangCallback(Ref* pSender)
+{
+	// 分发底牌
+	for (int i=0; i<_vecDiPai.size(); i++)
+	{
+		_player1->FaPai(this, _vecDiPai[i]);
+	}
+
+	// 切换菜单可见
+	_qiangDiZhuMenu->setVisible(false);
+	_chuPaiMenu->setVisible(true);
+}
+
 void GameScene::menuBuChuCallback(Ref* pSender)
 {
+	_player3->clearCards();
 	_player1->BuChu();
+
+	auto delay = DelayTime::create(1);
+	auto callback = CallFuncN::create(CC_CALLBACK_1(GameScene::callbackChuPai2,this));
+	auto seq = Sequence::createWithTwoActions(delay, callback);
+	this->runAction(seq);
+
+	_chuPaiMenu->setVisible(false);
 }
 
 void GameScene::menuChuPaiCallback(Ref* pSender)
 {
 	_player3->clearCards();
 
-	_player1->ChuPai();
+	_player1->ChuPai(this);
 	// 清空牌型判断区
 	_arrPlayerOut->removeAllObjects();
 
@@ -143,13 +209,15 @@ void GameScene::menuChuPaiCallback(Ref* pSender)
 	auto callback = CallFuncN::create(CC_CALLBACK_1(GameScene::callbackChuPai2,this));
 	auto seq = Sequence::createWithTwoActions(delay, callback);
 	this->runAction(seq);
+
+	_chuPaiMenu->setVisible(false);
 }
 
 void GameScene::callbackChuPai2(cocos2d::Node* node)
 {
 	_player1->clearCards();
 
-	_player2->ChuPai();
+	_player2->ChuPai(this);
 	auto delay = DelayTime::create(1);
 	auto callback = CallFuncN::create(CC_CALLBACK_1(GameScene::callbackChuPai3,this));
 	auto seq = Sequence::createWithTwoActions(delay, callback);
@@ -160,7 +228,9 @@ void GameScene::callbackChuPai3(cocos2d::Node* node)
 {
 	_player2->clearCards();
 
-	_player3->ChuPai();
+	_player3->ChuPai(this);
+
+	_chuPaiMenu->setVisible(true);
 }
 
 void GameScene::update(float delta)
@@ -182,6 +252,11 @@ void GameScene::OutCard(float delta)
 			((MenuItemFont *)_chuPaiMenu->getChildByTag(1))->setEnabled(false);
 		}
 	}
+}
+
+void GameScene::gameover()
+{
+	_restartMenu->setVisible(true);
 }
 
 CARD_TYPE GameScene::PanDuanPaiXing()
@@ -211,7 +286,7 @@ CARD_TYPE GameScene::PanDuanPaiXing()
 	else if (length >= 5)
 	{
 		// 连牌
-		if (CheckContinuous(_arrPlayerOut)/* && IsLessTwo(_arrPlayerOut)*/)
+		if (CheckContinuous(_arrPlayerOut) && IsLessTwo(_arrPlayerOut))
 		{
 			return CONNECT_CARD;
 		}
@@ -447,7 +522,7 @@ bool IsLessTwo(CCArray* vecPoke)
 		Poke* poke = dynamic_cast<Poke*>(vecPoke->objectAtIndex(i));
 		if (poke != NULL)
 		{
-			ret = poke->_info._num > 2;
+			ret = poke->_info._num >= 12;
 		}
 	}
 
