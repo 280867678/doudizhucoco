@@ -242,7 +242,7 @@ void GameScene::OutCard(float delta)
 {
 	if (_state == 1)
 	{
-		CARD_TYPE type_card = PanDuanPaiXing();
+		CARD_TYPE type_card = PanDuanPaiXing(_arrPlayerOut);
 		if (type_card != ERROR_CARD)
 		{
 			((MenuItemFont *)_chuPaiMenu->getChildByTag(1))->setEnabled(true);
@@ -259,23 +259,135 @@ void GameScene::gameover()
 	_restartMenu->setVisible(true);
 }
 
-CARD_TYPE GameScene::PanDuanPaiXing()
+unsigned int GameScene::GetCardLogicValue(cocos2d::CCArray* cards)
 {
-	unsigned int length = _arrPlayerOut->count();
+	//获取类型  
+	CARD_TYPE cbNextType= PanDuanPaiXing(cards);
+
+	//开始对比  
+	switch(cbNextType)  
+	{  
+	case SINGLE_CARD:  
+		return 1;
+	case DOUBLE_CARD:  
+		return 7;
+	case THREE_CARD:  
+		return 7;
+	case CONNECT_CARD:  
+		return 7;
+	case COMPANY_CARD:  
+		return 7;
+	case AIRCRAFT_CARD:  
+		return 7;
+	case BOMB_CARD:  
+		return 7;
+	case THREE_ONE_CARD:  
+		return 7;
+	case THREE_TWO_CARD:  
+		return 7;
+	case BOMB_TWO_CARD:  
+		return 7;
+	case BOMB_TWOOO_CARD:
+		return 7;
+	}  
+}
+
+bool GameScene::CompareCard(CCArray* firstCard, CCArray* nextCard)  
+{  
+	//获取类型  
+	CARD_TYPE cbNextType= PanDuanPaiXing(nextCard);  
+	CARD_TYPE cbFirstType= PanDuanPaiXing(firstCard);  
+
+	//类型判断  
+	if(cbNextType==ERROR_CARD) return false;  
+	if(cbNextType==MISSILE_CARD) return true;  
+
+	//炸弹判断  
+	if((cbFirstType!=BOMB_CARD)&&(cbNextType==BOMB_CARD)) return true;  
+	if((cbFirstType==BOMB_CARD)&&(cbNextType!=BOMB_CARD)) return false;  
+
+	//规则判断  
+	if((cbFirstType!=cbNextType)||(firstCard->count()!=nextCard->count())) return false;  
+
+	//开始对比  
+	switch(cbNextType)  
+	{  
+	case SINGLE_CARD:  
+	case DOUBLE_CARD:  
+	case THREE_CARD:  
+	case CONNECT_CARD:  
+	case COMPANY_CARD:  
+	case AIRCRAFT_CARD:  
+	case BOMB_CARD:  
+		{  
+			//获取数值  
+			BYTE cbNextLogicValue=GetCardLogicValue(nextCard);  
+			BYTE cbFirstLogicValue=GetCardLogicValue(firstCard);  
+
+			//对比扑克  
+			return cbNextLogicValue>cbFirstLogicValue;  
+		}  
+	case THREE_ONE_CARD:  
+	case THREE_TWO_CARD:  
+		{  
+// 			//分析扑克  
+// 			tagAnalyseResult NextResult;  
+// 			tagAnalyseResult FirstResult;  
+// 			AnalysebCardData(cbNextCard,cbNextCount,NextResult);  
+// 			AnalysebCardData(cbFirstCard,cbFirstCount,FirstResult);  
+// 
+// 			//获取数值  
+// 			BYTE cbNextLogicValue=GetCardLogicValue(NextResult.cbThreeCardData[0]);  
+// 			BYTE cbFirstLogicValue=GetCardLogicValue(FirstResult.cbThreeCardData[0]);  
+
+			//对比扑克  
+//			return cbNextLogicValue>cbFirstLogicValue;  
+		}  
+	case BOMB_TWO_CARD:  
+	case BOMB_TWOOO_CARD:  
+		{  
+// 			//分析扑克  
+// 			tagAnalyseResult NextResult;  
+// 			tagAnalyseResult FirstResult;  
+// 			AnalysebCardData(cbNextCard,cbNextCount,NextResult);  
+// 			AnalysebCardData(cbFirstCard,cbFirstCount,FirstResult);  
+// 
+// 			//获取数值  
+// 			BYTE cbNextLogicValue=GetCardLogicValue(NextResult.cbFourCardData[0]);  
+// 			BYTE cbFirstLogicValue=GetCardLogicValue(FirstResult.cbFourCardData[0]);  
+
+			//对比扑克  
+//			return cbNextLogicValue>cbFirstLogicValue;  
+		}  
+	}  
+
+	return false;  
+}  
+
+CARD_TYPE GameScene::PanDuanPaiXing(CCArray* cards)
+{
+	unsigned int length = cards->count();
 
 	//小于5张牌
 	//单牌，对子，3不带,炸弹通用算法
 	if(length > 0 && length < 5) 
 	{
-		Poke* poke1 = dynamic_cast<Poke*>(_arrPlayerOut->objectAtIndex(0));
-		Poke* poke_1 = dynamic_cast<Poke*>(_arrPlayerOut->objectAtIndex(length - 1));
+		Poke* poke1 = dynamic_cast<Poke*>(cards->objectAtIndex(0));
+		Poke* poke_1 = dynamic_cast<Poke*>(cards->objectAtIndex(length - 1));
 
 		if(poke1->_info._num == poke_1->_info._num)
 		{
 			return (CARD_TYPE)length;
 		}
 
-		Poke* poke_2 = dynamic_cast<Poke*>(_arrPlayerOut->objectAtIndex(length - 2));
+		// 火箭
+		Poke* poke2 = dynamic_cast<Poke*>(cards->objectAtIndex(1));
+		if (poke1->_info._num == NUM_XW && poke2->_info._num == NUM_DW && length == 2)
+		{
+			return MISSILE_CARD;
+		}
+
+		Poke* poke_2 = dynamic_cast<Poke*>(cards->objectAtIndex(length - 2));
 		if (poke1->_info._num == poke_2->_info._num && length == 4)
 		{
 			return THREE_ONE_CARD;
@@ -286,7 +398,7 @@ CARD_TYPE GameScene::PanDuanPaiXing()
 	else if (length >= 5)
 	{
 		// 连牌
-		if (CheckContinuous(_arrPlayerOut) && IsLessTwo(_arrPlayerOut))
+		if (CheckContinuous(cards) && IsLessTwo(cards))
 		{
 			return CONNECT_CARD;
 		}
@@ -297,7 +409,7 @@ CARD_TYPE GameScene::PanDuanPaiXing()
 			std::vector<int> vec;
 			for (int i=0; i<length; i++)
 			{
-				Poke* poke = dynamic_cast<Poke*>(_arrPlayerOut->objectAtIndex(i));
+				Poke* poke = dynamic_cast<Poke*>(cards->objectAtIndex(i));
 				if (poke != NULL)
 				{
 					vec.push_back(poke->_info._num);
@@ -346,7 +458,7 @@ CARD_TYPE GameScene::PanDuanPaiXing()
 		std::vector<int> vec;
 		for (int i=0; i<length; i++)
 		{
-			Poke* poke = dynamic_cast<Poke*>(_arrPlayerOut->objectAtIndex(i));
+			Poke* poke = dynamic_cast<Poke*>(cards->objectAtIndex(i));
 			if (poke != NULL)
 			{
 				vec.push_back(poke->_info._num);

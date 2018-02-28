@@ -20,6 +20,7 @@ enum  CARD_TYPE
 	DOUBLE_CARD,			//对子
 	THREE_CARD,				//3不带
 	BOMB_CARD,				//炸弹
+	MISSILE_CARD,			//火箭
 	THREE_ONE_CARD,			//3带1
 	THREE_TWO_CARD,			//3带2
 	BOMB_TWO_CARD,			//四个带2张单牌
@@ -76,7 +77,11 @@ public:
 	void callbackChuPai2(cocos2d::Node* node);
 	void callbackChuPai3(cocos2d::Node* node);
 
-	CARD_TYPE PanDuanPaiXing();//判断牌型
+	// 获取权值
+	unsigned int GetCardLogicValue(cocos2d::CCArray* cards);
+	// true next大
+	bool CompareCard(cocos2d::CCArray* firstCard, cocos2d::CCArray* nextCard);
+	CARD_TYPE PanDuanPaiXing(cocos2d::CCArray* cards);//判断牌型
 	cocos2d::CCArray* getArrPlayerOut() { return _arrPlayerOut; }
     
     // implement the "static create()" method manually
