@@ -18,13 +18,22 @@
     <ClCompile Include="..\Classes\AppDelegate.cpp">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\Classes\GameScene.cpp">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\Classes\Player.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\Classes\Poke.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\SceneMenu.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\SceneGame.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\AppCommon.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\BottomCardZone.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
@@ -35,13 +44,22 @@
     <ClInclude Include="..\Classes\AppDelegate.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\Classes\GameScene.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="..\Classes\Player.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\Classes\Poke.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\SceneMenu.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\SceneGame.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\AppCommon.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\BottomCardZone.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>

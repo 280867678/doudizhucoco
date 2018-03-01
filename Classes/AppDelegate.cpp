@@ -1,14 +1,16 @@
 #include "AppDelegate.h"
-#include "GameScene.h"
+#include "SceneMenu.h"
 
 USING_NS_CC;
 
-AppDelegate::AppDelegate() {
+AppDelegate::AppDelegate() 
+{
 
 }
 
 AppDelegate::~AppDelegate() 
 {
+
 }
 
 //if you want a different context,just modify the value of glContextAttrs
@@ -22,25 +24,29 @@ void AppDelegate::initGLContextAttrs()
     GLView::setGLContextAttrs(glContextAttrs);
 }
 
-bool AppDelegate::applicationDidFinishLaunching() {
-    // initialize director
+bool AppDelegate::applicationDidFinishLaunching() 
+{
+    // 初始化Director
     auto director = Director::getInstance();
     auto glview = director->getOpenGLView();
-    if(!glview) {
-        glview = GLViewImpl::create("My Game");
+    if(!glview) 
+	{
+        glview = GLViewImpl::create("doudizhu");
+		// 960 540
+		glview->setFrameSize(1200,675);
         director->setOpenGLView(glview);
     }
 
-    // turn on display FPS
+    // 设置帧数
     director->setDisplayStats(true);
-
-    // set FPS. the default value is 1.0/60 if you don't call this
     director->setAnimationInterval(1.0 / 60);
 
-    // create a scene. it's an autorelease object
-    auto scene = GameScene::createScene();
+	// 加载游戏需要资源
+	auto frameCache = SpriteFrameCache::getInstance();
+	frameCache->addSpriteFramesWithFile("poker_b.plist","poker_b.png");
 
-    // run
+    // 运行菜单场景
+    auto scene = SceneMenu::createScene();
     director->runWithScene(scene);
 
     return true;

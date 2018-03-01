@@ -37,30 +37,31 @@ struct PokeInfo
 
 	inline bool operator==(const PokeInfo &pi) const
 	{
-		if (_num>=13)
-		{
-			if (this->_num==pi._num)
-				return true;
-		}else
-		{
-			if (this->_num==pi._num &&
-				this->_tag==pi._tag)
-				return true;
-		}
-
-		return false;
+// 		if (_num>=13)
+// 		{
+// 			if (this->_num==pi._num)
+// 				return true;
+// 		}else
+// 		{
+// 			if (this->_num==pi._num &&
+// 				this->_tag==pi._tag)
+// 				return true;
+// 		}
+// 
+// 		return false;
+		return this->_num==pi._num;
 	}
 };
 
-class GameScene;
+class SceneGame;
 
 class Poke : public cocos2d::Sprite
 {
 public:
 
-	static Poke* create(PokeInfo info);
+	static Poke* create(PokeInfo info, bool isSmall = false);
 
-	virtual bool init(PokeInfo info);
+	virtual bool init(PokeInfo info, bool isSmall = false);
 
 	void SetTouchEnabled();
 
@@ -78,7 +79,7 @@ public:
 	virtual void onTouchCancelled(cocos2d::Touch* touch, cocos2d::Event* event);
 	virtual void onTouchMoved(cocos2d::Touch* touch, cocos2d::Event* event);
 
-	CC_SYNTHESIZE(GameScene*,_gameMain,GameMain);
+	CC_SYNTHESIZE(SceneGame*,_gameMain,GameMain);
 
 	PokeInfo	_info;
 

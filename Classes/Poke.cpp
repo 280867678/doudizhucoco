@@ -1,12 +1,12 @@
 #include "Poke.h"
-#include "GameScene.h"
+#include "SceneGame.h"
 
 USING_NS_CC;
 
-Poke* Poke::create(PokeInfo info)
+Poke* Poke::create(PokeInfo info, bool isSmall)
 {
 	Poke *sprite = new (std::nothrow) Poke();
-	if (sprite && sprite->init(info))
+	if (sprite && sprite->init(info, isSmall))
 	{
 		sprite->autorelease();
 		return sprite;
@@ -33,7 +33,7 @@ char* poke_text[] = {
 	"W",
 };
 
-bool Poke::init(PokeInfo info)
+bool Poke::init(PokeInfo info, bool isSmall)
 {
 	// 初始化基类--------------------------------------------------------------
 	if ( !Sprite::init() )
@@ -43,9 +43,73 @@ bool Poke::init(PokeInfo info)
 
 	_info = info;
 
-	auto cardFront = Label::createWithSystemFont(poke_text[_info._num], "arial", 24);
-	this->addChild(cardFront);
-	_size = cardFront->getContentSize();
+	if (isSmall)
+	{
+		auto cardFront = Label::createWithSystemFont(poke_text[_info._num], "arial", 24);
+		this->addChild(cardFront);
+		_size = cardFront->getContentSize();
+	}
+	else
+	{
+		auto cardFront = Sprite::createWithSpriteFrameName("b/bg.png");
+		this->addChild(cardFront);
+		_size = cardFront->getContentSize();
+
+		if (_info._num == PokeNum::NUM_DW)
+		{
+			auto cardNum = Sprite::createWithSpriteFrameName("b/smalltag_4.png");
+			cardNum->setPosition(-50,10);
+			this->addChild(cardNum);
+
+			auto cardTag = Sprite::createWithSpriteFrameName("b/bigtag_6.png");
+			cardTag->setPosition(20,-30);
+			this->addChild(cardTag);
+		} 
+		else if (_info._num == PokeNum::NUM_XW)
+		{
+			auto cardNum = Sprite::createWithSpriteFrameName("b/smalltag_5.png");
+			cardNum->setPosition(-50,10);
+			this->addChild(cardNum);
+
+			auto cardTag = Sprite::createWithSpriteFrameName("b/bigtag_6.png");
+			cardTag->setPosition(20,-30);
+			this->addChild(cardTag);
+		}
+		else 
+		{
+			unsigned int num = 0;
+
+			if (_info._num == NUM_A)
+			{
+				num = 0;
+			}
+			else if (_info._num == NUM_2)
+			{
+				num = 1;
+			}
+			else
+			{
+				num = _info._num + 2;
+			}
+
+			std::stringstream strNum;
+			strNum << "b/black_" << num << ".png";
+			auto cardNum = Sprite::createWithSpriteFrameName(strNum.str());
+			cardNum->setPosition(-50,70);
+			this->addChild(cardNum);
+
+			std::stringstream strTag;
+			strTag << "b/bigtag_" << _info._tag << ".png";
+			auto cardSmallTag = Sprite::createWithSpriteFrameName(strTag.str());
+			cardSmallTag->setScale(0.5);
+			cardSmallTag->setPosition(-50,20);
+			this->addChild(cardSmallTag);
+
+			auto cardTag = Sprite::createWithSpriteFrameName(strTag.str());
+			cardTag->setPosition(20,-30);
+			this->addChild(cardTag);
+		}
+	}
 
 	_isSelected = false;
 
