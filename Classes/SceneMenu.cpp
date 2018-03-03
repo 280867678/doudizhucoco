@@ -24,23 +24,21 @@ bool SceneMenu::init()
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
 
     // ±³¾°----------------------------------------------
-	auto bg = Sprite::create("bg.jpg");
-	bg->setScale(1/0.8);
-	bg->setPosition(Vec2(visibleSize.width / 2 + origin.x, visibleSize.height/2 + origin.y));
+	auto bg = Sprite::create("beijing.png");
+	//bg->setScale(1/0.8);
+	bg->setPosition(Vec2(visibleSize.width / 2 + origin.x, visibleSize.height / 2 + origin.y));
 	this->addChild(bg, 0);
 
-	auto logo = Sprite::create("hall_loading.png");
-	logo->setPosition(Vec2(visibleSize.width / 3 + origin.x, visibleSize.height/2 + origin.y));
+	auto logo = Sprite::create("game_logo.png");
+	logo->setPosition(Vec2(visibleSize.width / 2 + origin.x, visibleSize.height / 3 * 2 + origin.y));
 	this->addChild(logo, 0);
 
 	// ´´½¨²Ëµ¥---------------------------------------------
 
-	auto itemBegin = createCustomMenuItem("item_begin.png", "item_begin.png");
-	itemBegin->setCallback(CC_CALLBACK_1(SceneMenu::menuBeginCallback, this));
-	itemBegin->setPosition(Vec2(220,50));
-	auto itemExit = createCustomMenuItem("item_exit.png", "item_exit.png");
-	itemExit->setCallback(CC_CALLBACK_1(SceneMenu::menuExitCallback, this));
-	itemExit->setPosition(Vec2(220,-50));
+	auto itemBegin = customMenuItem("item_begin.png", "item_begin.png", CC_CALLBACK_1(SceneMenu::menuBeginCallback, this));
+	itemBegin->setPosition(Vec2(-200,-200));
+	auto itemExit = customMenuItem("item_exit.png", "item_exit.png", CC_CALLBACK_1(SceneMenu::menuExitCallback, this));
+	itemExit->setPosition(Vec2(200,-200));
 
     auto menu = Menu::create(itemBegin, itemExit, NULL);
     this->addChild(menu, 1);

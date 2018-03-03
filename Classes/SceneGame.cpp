@@ -42,9 +42,12 @@ bool SceneGame::init()
 	bg->setPosition(Vec2(visibleSize.width/2 + origin.x, visibleSize.height/2 + origin.y));
 	this->addChild(bg, 0);
 
+	auto flag = Sprite::create("d_flag.png");
+	flag->setPosition(Vec2(visibleSize.width/2 + origin.x, visibleSize.height/2 + origin.y + 100));
+	this->addChild(flag, 0);
+
 	// 创建返回菜单---------------------------------------------
-	auto itemBack = createCustomMenuItem("item_back.png", "item_back.png");
-	itemBack->setCallback(CC_CALLBACK_1(SceneGame::menuBackCallback, this));
+	auto itemBack = customMenuItem("item_back.png", "item_back.png", CC_CALLBACK_1(SceneGame::menuBackCallback, this));
 	itemBack->setPosition(visibleSize.width/2+200, visibleSize.height-50);
 
 	auto menuBack = Menu::create(itemBack, NULL);
@@ -53,7 +56,7 @@ bool SceneGame::init()
 
 	// 重开菜单
 
-	auto itemRestart = MenuItemFont::create("Game over! Press this button to restart!", CC_CALLBACK_1(SceneGame::menuRestartCallback, this));
+	auto itemRestart = MenuItemFont::create("游戏结束! 点击重新开始!", CC_CALLBACK_1(SceneGame::menuRestartCallback, this));
 	itemRestart->setFontSize(28);
 	itemRestart->setColor(Color3B(255, 0, 0));
 
@@ -63,34 +66,20 @@ bool SceneGame::init()
 
 	// 抢地主菜单
 
-	auto itemBuQiang = MenuItemFont::create("BuQiang", CC_CALLBACK_1(SceneGame::menuBuQiangCallback, this));
-	itemBuQiang->setFontSize(28);
-	itemBuQiang->setPosition(-150, -300);
+	auto itemQiang = customMenuItem("item_qiangdizhu.png", "item_qiangdizhu.png", CC_CALLBACK_1(SceneGame::menuQiangCallback, this));
+	itemQiang->setPosition(-80, -50);
+	auto itemBuQiang = customMenuItem("item_buqiang.png", "item_buqiang.png", CC_CALLBACK_1(SceneGame::menuBuQiangCallback, this));
+	itemBuQiang->setPosition(80, -50);
 
-	auto item1Fen = MenuItemFont::create("1$", CC_CALLBACK_1(SceneGame::menuBuQiangCallback, this));
-	item1Fen->setFontSize(28);
-	item1Fen->setPosition(-50, -300);
-
-	auto item2Fen = MenuItemFont::create("2$", CC_CALLBACK_1(SceneGame::menuBuQiangCallback, this));
-	item2Fen->setFontSize(28);
-	item2Fen->setPosition(50, -300);
-
-	auto item3Fen = MenuItemFont::create("3$", CC_CALLBACK_1(SceneGame::menuBuQiangCallback, this));
-	item3Fen->setFontSize(28);
-	item3Fen->setPosition(150, -300);
-
-	_qiangDiZhuMenu = Menu::create(itemBuQiang, item1Fen, item2Fen, item3Fen, NULL);
+	_qiangDiZhuMenu = Menu::create(itemBuQiang, itemQiang, NULL);
 	this->addChild(_qiangDiZhuMenu, 1);
 
     // 出牌菜单
 
-	auto itemBuChu = MenuItemFont::create("BuChu", CC_CALLBACK_1(SceneGame::menuBuChuCallback, this));
-	itemBuChu->setFontSize(28);
-	itemBuChu->setPosition(-100, -300);
-
-    auto itemChuPai = MenuItemFont::create("ChuPai", CC_CALLBACK_1(SceneGame::menuChuPaiCallback, this));
-	itemChuPai->setFontSize(28);
-	itemChuPai->setPosition(100, -300);
+	auto itemBuChu = customMenuItem("item_buchu.png", "item_buchu_d.png", CC_CALLBACK_1(SceneGame::menuBuChuCallback, this));
+	itemBuChu->setPosition(-100, -50);
+    auto itemChuPai = customMenuItem("item_chupai.png", "item_chupai_d.png", CC_CALLBACK_1(SceneGame::menuChuPaiCallback, this));
+	itemChuPai->setPosition(100, -50);
 
 	_chuPaiMenu = Menu::create();
 	_chuPaiMenu->addChild(itemBuChu,2,0);
@@ -100,21 +89,21 @@ bool SceneGame::init()
 
 	// 玩家
 
-	_player1 = Player::create("W1", true, true);
+	_player1 = Player::create("Player1", true, true);
 	_player1->setPosition(70, 300);
 	this->addChild(_player1);
 
-	_player2 = Player::create("P2", false, false);
+	_player2 = Player::create("Robot1", false, false);
 	_player2->setPosition(1000, 600);
 	this->addChild(_player2);
 
-	_player3 = Player::create("P3", false, false);
+	_player3 = Player::create("Robot2", false, false);
 	_player3->setPosition(70, 600);
 	this->addChild(_player3);
 
 	// 底牌区
 	_bottomCardZone = BottomCardZone::create();
-	_bottomCardZone->setPosition(450, 480);
+	_bottomCardZone->setPosition(600, 610);
 	this->addChild(_bottomCardZone, 1);
 
 
@@ -193,6 +182,19 @@ void SceneGame::menuBackCallback(Ref* pSender)
 void SceneGame::menuRestartCallback(Ref* pSender)
 {
 	Director::getInstance()->replaceScene(SceneGame::createScene());
+}
+
+void SceneGame::menuQiangCallback(Ref* pSender)
+{
+	// 分发底牌
+	for (int i=0; i<_vecDiPai.size(); i++)
+	{
+		_player1->FaPai(this, _vecDiPai[i]);
+	}
+
+	// 切换菜单可见
+	_qiangDiZhuMenu->setVisible(false);
+	_chuPaiMenu->setVisible(true);
 }
 
 void SceneGame::menuBuQiangCallback(Ref* pSender)

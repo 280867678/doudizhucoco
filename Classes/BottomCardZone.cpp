@@ -36,7 +36,7 @@ void BottomCardZone::Show(PokeInfo cardInfo)
 
 	//Ìí¼Ó¾«Áé
 	auto card = Poke::create(cardInfo);
-	card->setScale(0.6);
+	card->setScale(0.7);
 	this->addChild(card, 100-cardInfo._num);
 
 	sortAllChildren();
@@ -48,7 +48,7 @@ void BottomCardZone::Show(PokeInfo cardInfo)
 		Poke* card = dynamic_cast<Poke*>(_children.at(i));
 		if (card != NULL)
 		{
-			card->setPosition((i-zeroPoint)*100, 0);
+			card->setPosition((i-zeroPoint)*110, 0);
 		}
 	}
 }

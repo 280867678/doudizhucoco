@@ -26,6 +26,7 @@ public:
     // ²Ëµ¥»Øµ÷
 	void menuBackCallback(cocos2d::Ref* pSender);
 	void menuRestartCallback(cocos2d::Ref* pSender);
+	void menuQiangCallback(cocos2d::Ref* pSender);
 	void menuBuQiangCallback(cocos2d::Ref* pSender);
     void menuBuChuCallback(cocos2d::Ref* pSender);
 	void menuChuPaiCallback(cocos2d::Ref* pSender);

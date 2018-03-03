@@ -83,7 +83,7 @@ public:
 	{
 		if (arrayIndexs.empty())
 		{
-			auto label_buchu = cocos2d::Label::createWithSystemFont("BUCHU", "arial", 24);
+			auto label_buchu = cocos2d::Sprite::create("buchu.png");
 			this->addChild(label_buchu);
 		}
 
@@ -93,6 +93,7 @@ public:
 		for (int i=0; i<arrayIndexs.size(); ++i)
 		{
 			auto card = Poke::create(arrayIndexs.at(i));
+			card->setScale(0.5);
 			this->addChild(card, 100-arrayIndexs.at(i)._num);
 		}
 
@@ -140,8 +141,8 @@ protected:
 	bool _isHero;
 	bool _isDiZhu;
 
+	cocos2d::Sprite*_cardsManager;
 	cocos2d::Label*	_labelPlayerName;
-	cocos2d::Label*	_labelPlayerIdentity;
 	cocos2d::Label*	_labelPokeCount;
 
 	std::vector<PokeInfo>	_vecPokeInfo;

@@ -11,6 +11,6 @@
 #include "cocos2d.h"
 
 // 创建自定义菜单项
-cocos2d::MenuItemSprite* createCustomMenuItem(const std::string& normalImage, const std::string& disabledImage);
+cocos2d::MenuItemSprite* customMenuItem(const std::string& normalImage, const std::string& disabledImage, const cocos2d::ccMenuCallback& callback);
 
 #endif //__APPCOMMON_H__
