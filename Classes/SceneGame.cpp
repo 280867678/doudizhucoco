@@ -46,23 +46,28 @@ bool SceneGame::init()
 	flag->setPosition(Vec2(visibleSize.width/2 + origin.x, visibleSize.height/2 + origin.y + 100));
 	this->addChild(flag, 0);
 
-	// 创建返回菜单---------------------------------------------
+	// 返回菜单
+
 	auto itemBack = customMenuItem("item_back.png", "item_back.png", CC_CALLBACK_1(SceneGame::menuBackCallback, this));
 	itemBack->setPosition(visibleSize.width/2+200, visibleSize.height-50);
 
 	auto menuBack = Menu::create(itemBack, NULL);
 	menuBack->setPosition(origin);
 	this->addChild(menuBack, 1);
+	
+	// 准备菜单
+
+	auto itemReady = customMenuItem("item_zhunbei.png", "item_zhunbei.png", CC_CALLBACK_1(SceneGame::menuReadyCallback, this));
+	_menuReady = Menu::create(itemReady, NULL);
+	this->addChild(_menuReady, 1);
 
 	// 重开菜单
 
-	auto itemRestart = MenuItemFont::create("游戏结束! 点击重新开始!", CC_CALLBACK_1(SceneGame::menuRestartCallback, this));
-	itemRestart->setFontSize(28);
-	itemRestart->setColor(Color3B(255, 0, 0));
-
-	_restartMenu = Menu::create(itemRestart, NULL);
-	this->addChild(_restartMenu, 1);
-	_restartMenu->setVisible(false);
+	auto itemRestart = customMenuItemWithSpriteFrameName("ddzsingle_maplvl_btn_restart.png", "ddzsingle_maplvl_btn_restart.png", CC_CALLBACK_1(SceneGame::menuRestartCallback, this));
+	itemRestart->setPosition(0, -150);
+	_menuRestart = Menu::create(itemRestart, NULL);
+	this->addChild(_menuRestart, 101);
+	_menuRestart->setVisible(false);
 
 	// 抢地主菜单
 
@@ -71,8 +76,9 @@ bool SceneGame::init()
 	auto itemBuQiang = customMenuItem("item_buqiang.png", "item_buqiang.png", CC_CALLBACK_1(SceneGame::menuBuQiangCallback, this));
 	itemBuQiang->setPosition(80, -50);
 
-	_qiangDiZhuMenu = Menu::create(itemBuQiang, itemQiang, NULL);
-	this->addChild(_qiangDiZhuMenu, 1);
+	_menuQiangDiZhu = Menu::create(itemBuQiang, itemQiang, NULL);
+	this->addChild(_menuQiangDiZhu, 1);
+	_menuQiangDiZhu->setVisible(false);
 
     // 出牌菜单
 
@@ -81,23 +87,23 @@ bool SceneGame::init()
     auto itemChuPai = customMenuItem("item_chupai.png", "item_chupai_d.png", CC_CALLBACK_1(SceneGame::menuChuPaiCallback, this));
 	itemChuPai->setPosition(100, -50);
 
-	_chuPaiMenu = Menu::create();
-	_chuPaiMenu->addChild(itemBuChu,2,0);
-	_chuPaiMenu->addChild(itemChuPai,2,1);
-	this->addChild(_chuPaiMenu, 1);
-	_chuPaiMenu->setVisible(false);
+	_menuChuPai = Menu::create();
+	_menuChuPai->addChild(itemBuChu,2,0);
+	_menuChuPai->addChild(itemChuPai,2,1);
+	this->addChild(_menuChuPai, 1);
+	_menuChuPai->setVisible(false);
 
 	// 玩家
 
-	_player1 = Player::create("Player1", true, true);
+	_player1 = Player::create("Player1", true);
 	_player1->setPosition(70, 300);
 	this->addChild(_player1);
 
-	_player2 = Player::create("Robot1", false, false);
+	_player2 = Player::create("Robot1", false);
 	_player2->setPosition(1000, 600);
 	this->addChild(_player2);
 
-	_player3 = Player::create("Robot2", false, false);
+	_player3 = Player::create("Robot2", false);
 	_player3->setPosition(70, 600);
 	this->addChild(_player3);
 
@@ -106,14 +112,45 @@ bool SceneGame::init()
 	_bottomCardZone->setPosition(600, 610);
 	this->addChild(_bottomCardZone, 1);
 
-
 	// 初始化牌堆
 	initCards();
 
 	// 洗牌
 	srand(time(0));
 	std::random_shuffle(_pokeInfo.begin(), _pokeInfo.end());
+    
+	_arrPlayerOut = CCArray::create();
+	_arrPlayerOut->retain();
 
+	_state = 1;
+	_gameover = false;
+
+    return true;
+}
+
+void SceneGame::initCards()
+{
+	for (int i=0; i<13; i++)
+	{
+		for (int j=0; j<4; j++)
+		{
+			PokeInfo info;
+			info._num = (PokeNum)i;
+			info._tag = (PokeTag)j;
+			_pokeInfo.push_back(info);
+		}
+	}
+
+	PokeInfo info;
+	info._num = (PokeNum)13;
+	info._tag = (PokeTag)0;
+	_pokeInfo.push_back(info);
+	info._num = (PokeNum)14;
+	_pokeInfo.push_back(info);
+}
+
+void SceneGame::faPai()
+{
 	// 发牌
 
 	for (int i = 0; i < 54; i++)
@@ -141,42 +178,22 @@ bool SceneGame::init()
 			}
 		}
 	}
-	
+
 	// 自动判断牌型
 	schedule(schedule_selector(SceneGame::OutCard),0.5);
-    
-	_arrPlayerOut = CCArray::create();
-	_arrPlayerOut->retain();
-
-	_state = 1;
-
-    return true;
-}
-
-void SceneGame::initCards()
-{
-	for (int i=0; i<13; i++)
-	{
-		for (int j=0; j<4; j++)
-		{
-			PokeInfo info;
-			info._num = (PokeNum)i;
-			info._tag = (PokeTag)j;
-			_pokeInfo.push_back(info);
-		}
-	}
-
-	PokeInfo info;
-	info._num = (PokeNum)13;
-	info._tag = (PokeTag)0;
-	_pokeInfo.push_back(info);
-	info._num = (PokeNum)14;
-	_pokeInfo.push_back(info);
 }
 
 void SceneGame::menuBackCallback(Ref* pSender)
 {
 	Director::getInstance()->replaceScene(SceneMenu::createScene());
+}
+
+void SceneGame::menuReadyCallback(Ref* pSender)
+{
+	faPai();
+
+	_menuReady->setVisible(false);
+	_menuQiangDiZhu->setVisible(true);
 }
 
 void SceneGame::menuRestartCallback(Ref* pSender)
@@ -189,12 +206,13 @@ void SceneGame::menuQiangCallback(Ref* pSender)
 	// 分发底牌
 	for (int i=0; i<_vecDiPai.size(); i++)
 	{
+		_player1->setDiZhu();
 		_player1->FaPai(this, _vecDiPai[i]);
 	}
 
 	// 切换菜单可见
-	_qiangDiZhuMenu->setVisible(false);
-	_chuPaiMenu->setVisible(true);
+	_menuQiangDiZhu->setVisible(false);
+	_menuChuPai->setVisible(true);
 }
 
 void SceneGame::menuBuQiangCallback(Ref* pSender)
@@ -202,12 +220,13 @@ void SceneGame::menuBuQiangCallback(Ref* pSender)
 	// 分发底牌
 	for (int i=0; i<_vecDiPai.size(); i++)
 	{
-		_player1->FaPai(this, _vecDiPai[i]);
+		_player2->setDiZhu();
+		_player2->FaPai(this, _vecDiPai[i]);
 	}
 
 	// 切换菜单可见
-	_qiangDiZhuMenu->setVisible(false);
-	_chuPaiMenu->setVisible(true);
+	_menuQiangDiZhu->setVisible(false);
+	_menuChuPai->setVisible(true);
 }
 
 void SceneGame::menuBuChuCallback(Ref* pSender)
@@ -220,7 +239,7 @@ void SceneGame::menuBuChuCallback(Ref* pSender)
 	auto seq = Sequence::createWithTwoActions(delay, callback);
 	this->runAction(seq);
 
-	_chuPaiMenu->setVisible(false);
+	_menuChuPai->setVisible(false);
 }
 
 void SceneGame::menuChuPaiCallback(Ref* pSender)
@@ -236,7 +255,7 @@ void SceneGame::menuChuPaiCallback(Ref* pSender)
 	auto seq = Sequence::createWithTwoActions(delay, callback);
 	this->runAction(seq);
 
-	_chuPaiMenu->setVisible(false);
+	_menuChuPai->setVisible(false);
 }
 
 void SceneGame::callbackChuPai2(cocos2d::Node* node)
@@ -281,7 +300,10 @@ void SceneGame::callbackChuPai3(cocos2d::Node* node)
 		_player3->ChuPai(this, true, type_out_cards, _vecOutCards.size(), 1);// 跟牌
 	}
 
-	_chuPaiMenu->setVisible(true);
+	if (!_gameover)
+	{
+		_menuChuPai->setVisible(true);
+	}
 }
 
 void SceneGame::update(float delta)
@@ -296,11 +318,11 @@ void SceneGame::OutCard(float delta)
 		CARD_TYPE type_card = PanDuanPaiXing(_arrPlayerOut);
 		if (type_card != ERROR_CARD)
 		{
-			((MenuItemFont *)_chuPaiMenu->getChildByTag(1))->setEnabled(true);
+			((MenuItemFont *)_menuChuPai->getChildByTag(1))->setEnabled(true);
 		}
 		else
 		{
-			((MenuItemFont *)_chuPaiMenu->getChildByTag(1))->setEnabled(false);
+			((MenuItemFont *)_menuChuPai->getChildByTag(1))->setEnabled(false);
 		}
 	}
 }
@@ -317,7 +339,36 @@ void SceneGame::saveOutCards(std::vector<PokeInfo>& vec)
 
 void SceneGame::gameover()
 {
-	_restartMenu->setVisible(true);
+	_gameover = true;
+
+	unschedule(schedule_selector(SceneGame::OutCard));
+
+	_menuRestart->setVisible(true);
+	_menuChuPai->setVisible(false);
+	_menuQiangDiZhu->setVisible(false);
+	_menuReady->setVisible(false);
+
+	jiesuan();
+}
+
+void SceneGame::jiesuan()
+{
+	// 结算页面
+
+	Size visibleSize = Director::getInstance()->getVisibleSize();
+	Vec2 origin = Director::getInstance()->getVisibleOrigin();
+
+	auto jiesuanBg = Sprite::create("gameover/bg_small.png");
+	jiesuanBg->setPosition(Vec2(visibleSize.width / 2 + origin.x, visibleSize.height / 2 + origin.y));
+	this->addChild(jiesuanBg, 100);
+
+	auto tiaofu = Sprite::create("gameover/gameresult_win_tiaofu.png");
+	tiaofu->setPosition(Vec2(350, 400));
+	jiesuanBg->addChild(tiaofu, 0);
+
+	auto shengli = Sprite::createWithSpriteFrameName("ddz_result_base_word_win.png");
+	shengli->setPosition(Vec2(350, 400));
+	jiesuanBg->addChild(shengli, 0);
 }
 
 unsigned int SceneGame::GetCardLogicValue(cocos2d::CCArray* cards)
@@ -666,73 +717,4 @@ CARD_TYPE SceneGame::PanDuanPaiXing(std::vector<int>& cards)
 	}
 
 	return ERROR_CARD;
-}
-
-// 判断是否连续
-
-bool IsContinuous(std::vector<int>& vec)
-{
-	bool ret = true;
-
-	// 排序
-	std::sort(vec.begin(), vec.end());
-
-	// 排序完成后比较相邻的两个数字的差值，如果全为1，则为连续
-	for (int i=0; i<vec.size()-1; i++)
-	{
-		if (vec[i+1] - vec[i] != 1)
-		{
-			ret = false;
-			break;
-		}
-	}
-
-	return ret;
-}
-
-bool IsContinuous(CCArray* vecPoke)
-{
-	unsigned int length = vecPoke->count();
-	std::vector<int> vec;
-
-	for (int i=0; i<length; i++)
-	{
-		Poke* poke = dynamic_cast<Poke*>(vecPoke->objectAtIndex(i));
-		if (poke != NULL)
-		{
-			vec.push_back(poke->_info._num);
-		}
-	}
-
-	return IsContinuous(vec);
-}
-
-// 判断是否都小于2
-bool IsLessTwo(CCArray* vecPoke)
-{
-	bool ret = false;
-
-	unsigned int length = vecPoke->count();
-	for (int i=0; i<length; i++)
-	{
-		Poke* poke = dynamic_cast<Poke*>(vecPoke->objectAtIndex(i));
-		if (poke != NULL)
-		{
-			ret = poke->_info._num >= 12;
-		}
-	}
-
-	return !ret;
-}
-
-bool IsLessTwo(std::vector<int>& vecPoke)
-{
-	bool ret = false;
-
-	for (int i=0; i<vecPoke.size(); i++)
-	{
-		ret = vecPoke[i] >= 12;
-	}
-
-	return !ret;
 }

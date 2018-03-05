@@ -3,10 +3,10 @@
 
 USING_NS_CC;
 
-Player* Player::create(std::string name, bool isDiZhu, bool isHero)
+Player* Player::create(std::string name, bool isHero)
 {
 	Player *sprite = new (std::nothrow) Player();
-	if (sprite && sprite->init(name, isDiZhu, isHero))
+	if (sprite && sprite->init(name, isHero))
 	{
 		sprite->autorelease();
 		return sprite;
@@ -15,7 +15,7 @@ Player* Player::create(std::string name, bool isDiZhu, bool isHero)
 	return nullptr;
 }
 
-bool Player::init(std::string name, bool isDiZhu, bool isHero)
+bool Player::init(std::string name, bool isHero)
 {
     if ( !Sprite::init() )
     {
@@ -35,17 +35,15 @@ bool Player::init(std::string name, bool isDiZhu, bool isHero)
 	_labelPlayerName->setPosition(0,-70);
 	this->addChild(_labelPlayerName,1);
 
-	// 玩家身份
-	if (isDiZhu)
-	{
-		auto lord = Sprite::create("flag_lord.png");
-		lord->setPosition(160, 0);
-		this->addChild(lord, 0);
-	}
-
 	// 玩家头像
-	auto avatorPlayer = Sprite::create(isDiZhu ? "touxiang_dizhu.png" : "touxiang_nongmin.png");
-	this->addChild(avatorPlayer, 0);
+	auto avatorBg = Sprite::create("item_bg1.png");
+	avatorBg->setScale(0.8);
+	this->addChild(avatorBg, 0);
+
+	char str_avator_image[255] = { 0 };
+	sprintf_s(str_avator_image, "head/vtouxiang_%02d.png", rand() % 14 + 1);
+	auto avator = Sprite::create(str_avator_image);
+	this->addChild(avator, 0);
 
 	// 玩家牌数
 	auto back = Sprite::createWithSpriteFrameName("b/poker_back.png");
@@ -62,10 +60,23 @@ bool Player::init(std::string name, bool isDiZhu, bool isHero)
 	if (isHero)
 		_exhibitionZone->setPosition(500, 0);
 	else
-		_exhibitionZone->setPosition(0, -130);
+		_exhibitionZone->setPosition(0, -150);
 	this->addChild(_exhibitionZone, 1);
 
     return true;
+}
+
+void Player::setDiZhu()
+{
+	_isDiZhu = true;
+
+	// 玩家身份
+	if (_isDiZhu)
+	{
+		auto lord = Sprite::create("flag_lord.png");
+		lord->setPosition(160, 0);
+		this->addChild(lord, 0);
+	}
 }
 
 void Player::FaPai(SceneGame* scene, PokeInfo info)
@@ -315,4 +326,113 @@ void Player::ChaiPai()
 			_allCardGroups.push_back(temp);
 		}
 	}
+
+	// 新的拆牌算法
+
+	// 4个辅助数组
+	std::vector<int> card_i;
+	std::vector<int> card_ii;
+	std::vector<int> card_iii;
+	std::vector<int> card_iiii;
+
+	// 1.将所有手牌分到四个辅助数组
+	for (int i=0; i<vec_poke.size(); i++)
+	{
+		// 第一个数组
+		auto itor_find_i = std::find(card_i.begin(), card_i.end(), vec_poke[i]);
+		// 找到了
+		if (itor_find_i != card_i.end())
+		{
+			// 第二个数组
+			auto itor_find_ii = std::find(card_ii.begin(), card_ii.end(), vec_poke[i]);
+			// 找到了
+			if (itor_find_ii != card_ii.end())
+			{
+				// 第三个数组
+				auto itor_find_iii = std::find(card_iii.begin(), card_iii.end(), vec_poke[i]);
+				// 找到了
+				if (itor_find_iii != card_iii.end())
+				{
+					// 第四个数组
+					card_iiii.push_back(vec_poke[i]);
+				}
+				// 没找到
+				else
+				{
+					card_iii.push_back(vec_poke[i]);
+				}
+			}
+			// 没找到
+			else
+			{
+				card_ii.push_back(vec_poke[i]);
+			}
+		}
+		// 没找到
+		else
+		{
+			card_i.push_back(vec_poke[i]);
+		}
+		vec_poke[i];
+	}
+
+	std::sort(card_i.begin(), card_i.end());
+	std::sort(card_ii.begin(), card_ii.end());
+	std::sort(card_iii.begin(), card_iii.end());
+	std::sort(card_iiii.begin(), card_iiii.end());
+
+	// 2.从四个辅助数组中判断牌型
+
+	// 第四个数组中都是炸弹
+	for (int i=0; i<card_iiii.size(); i++)
+	{
+		CARDS_DATA temp;
+		temp._cards.push_back(card_iiii[i]);
+		temp._cards.push_back(card_iiii[i]);
+		temp._cards.push_back(card_iiii[i]);
+		temp._cards.push_back(card_iiii[i]);
+		temp._type = BOMB_CARD;
+		temp._value = 100;
+
+		_allCardGroups.push_back(temp);
+	}
+
+	// 第三个数组中都是三张相同的，三不带，三带一，三带对
+	for (int i=0; i<card_iii.size(); i++)
+	{
+		CARDS_DATA temp;
+		temp._cards.push_back(card_iii[i]);
+		temp._cards.push_back(card_iii[i]);
+		temp._cards.push_back(card_iii[i]);
+		temp._type = THREE_CARD;
+		temp._value = 100;
+
+		_allCardGroups.push_back(temp);
+	}
+	
+	// 找单牌(在第一个数组，而不在第二个数组，并不能组成单顺)
+
+	// 单顺
+	for (int i=0; i<card_i.size(); i++)
+	{
+		auto itor = std::find(card_ii.begin(), card_ii.end(), card_i[i]);
+		if (itor != card_ii.end())
+		{
+			for (int j=5; j<card_i.size(); j++)
+			{
+				if (i+j<card_i.size() && card_i[i+j]-card_i[i]==j)
+				{
+					CARDS_DATA temp;
+					temp._type = CONNECT_CARD;
+					temp._value = 100;
+					for (int k=0; k<j; k++)
+					{
+						temp._cards.push_back(card_i[i+k]);
+					}
+					_allCardGroups.push_back(temp);
+				}
+			}
+		}
+	}
+
 }

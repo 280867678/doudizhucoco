@@ -5,14 +5,6 @@
 #include "Player.h"
 #include "BottomCardZone.h"
 
-// 判断是否连续
-bool IsContinuous(cocos2d::CCArray* vecPoke);
-bool IsContinuous(std::vector<int>& vec);
-
-// 判断是否都小于2
-bool IsLessTwo(cocos2d::CCArray* vecPoke);
-bool IsLessTwo(std::vector<int>& vecPoke);
-
 //---------------------------------------------
 // 游戏场景
 //---------------------------------------------
@@ -25,6 +17,7 @@ public:
 
     // 菜单回调
 	void menuBackCallback(cocos2d::Ref* pSender);
+	void menuReadyCallback(cocos2d::Ref* pSender);
 	void menuRestartCallback(cocos2d::Ref* pSender);
 	void menuQiangCallback(cocos2d::Ref* pSender);
 	void menuBuQiangCallback(cocos2d::Ref* pSender);
@@ -37,7 +30,11 @@ public:
 	void update(float delta);
 	void OutCard(float delta);
 
+	// 发牌
+	void faPai();
+
 	void gameover();
+	void jiesuan();
 
 	void initCards();
 
@@ -63,11 +60,13 @@ protected:
 
 	BottomCardZone* _bottomCardZone;
 
-	cocos2d::Menu*	_chuPaiMenu;
-	cocos2d::Menu*	_qiangDiZhuMenu;
-	cocos2d::Menu*	_restartMenu;
+	cocos2d::Menu*	_menuChuPai;
+	cocos2d::Menu*	_menuQiangDiZhu;
+	cocos2d::Menu*	_menuRestart;
+	cocos2d::Menu*	_menuReady;
 
 	int		_state;	// 当前状态，1出牌，2等待
+	bool	_gameover;
 
 	std::vector<PokeInfo> _pokeInfo;
 

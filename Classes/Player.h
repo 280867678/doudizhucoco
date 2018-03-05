@@ -121,12 +121,14 @@ class Player : public cocos2d::Sprite
 {
 public:
 
-	static Player* create(std::string name, bool isDiZhu, bool isHero);
+	static Player* create(std::string name, bool isHero);
 
-    virtual bool init(std::string name, bool isDiZhu, bool isHero);
+    virtual bool init(std::string name, bool isHero);
 
 	void updateCards();
 	void clearCards();
+
+	void setDiZhu();
 
 	void FaPai(SceneGame* scene, PokeInfo info);
 	void ChuPai(SceneGame* scene, bool isFollow, CARD_TYPE cardType, unsigned int count, unsigned int value);

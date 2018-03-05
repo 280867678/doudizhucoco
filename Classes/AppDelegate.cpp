@@ -44,6 +44,8 @@ bool AppDelegate::applicationDidFinishLaunching()
 	// 加载游戏需要资源
 	auto frameCache = SpriteFrameCache::getInstance();
 	frameCache->addSpriteFramesWithFile("poker_b.plist","poker_b.png");
+	frameCache->addSpriteFramesWithFile("gameover/ddzsingle_map_lvl.plist","gameover/ddzsingle_map_lvl.png");
+	frameCache->addSpriteFramesWithFile("gameover/nt_result_base.plist","gameover/nt_result_base.png");
 
     // 运行菜单场景
     auto scene = SceneMenu::createScene();

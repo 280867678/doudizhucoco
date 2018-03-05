@@ -12,5 +12,14 @@
 
 // 创建自定义菜单项
 cocos2d::MenuItemSprite* customMenuItem(const std::string& normalImage, const std::string& disabledImage, const cocos2d::ccMenuCallback& callback);
+cocos2d::MenuItemSprite* customMenuItemWithSpriteFrameName(const std::string& normalImage, const std::string& disabledImage, const cocos2d::ccMenuCallback& callback);
+
+// 判断是否连续
+bool IsContinuous(cocos2d::CCArray* vecPoke);
+bool IsContinuous(std::vector<int>& vec);
+
+// 判断是否都小于2
+bool IsLessTwo(cocos2d::CCArray* vecPoke);
+bool IsLessTwo(std::vector<int>& vecPoke);
 
 #endif //__APPCOMMON_H__
