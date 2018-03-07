@@ -1,6 +1,5 @@
 #include "AppCommon.h"
 #include "Poke.h"
-#include "cocos2d/external/win32-specific/icon/include/iconv.h"
 
 USING_NS_CC;
 
@@ -99,6 +98,253 @@ bool IsLessTwo(std::vector<int>& vecPoke)
 	return !ret;
 }
 
+struct CRAD_INDEX
+{
+	std::vector<int>	single_index;	//记录单张的牌
+	std::vector<int>	double_index;	//记录对子的牌
+	std::vector<int>	three_index;	//记录3张
+	std::vector<int>	four_index;		//记录4张
+};
+
+CARDS_DATA PanDuanPaiXing(CCArray* cards)
+{
+	std::vector<int> vec;
+	for (int i=0; i<cards->count(); i++)
+	{
+		Poke* poke = dynamic_cast<Poke*>(cards->objectAtIndex(i));
+		if (poke != NULL)
+		{
+			vec.push_back(poke->_info._num);
+		}
+	}
+
+	return PanDuanPaiXing(vec);
+}
+
+CARDS_DATA PanDuanPaiXing(std::vector<PokeInfo>& cards)
+{
+	std::vector<int> vec;
+	for (int i=0; i<cards.size(); i++)
+	{
+		vec.push_back(cards[i]._num);
+	}
+
+	return PanDuanPaiXing(vec);
+}
+
+CARDS_DATA PanDuanPaiXing(std::vector<int>& cards)
+{
+	CARDS_DATA ret;
+	unsigned int length = cards.size();
+	std::sort(cards.begin(), cards.end());
+
+	for (int i = 0; i < length; i++)
+	{
+		ret._cards.push_back(cards[i]);
+	}
+
+	//小于5张牌
+	//单牌，对子，3不带,炸弹通用算法
+	if(length > 0 && length < 5) 
+	{
+		// 单牌/对子/三不带/炸弹
+		if(cards[0] == cards[length - 1])
+		{
+			ret._type = (CARD_TYPE)length;
+			if (length == 4)
+			{
+				ret._value = 100 + cards[0];
+			}
+			else
+			{
+				ret._value = (length - 1)*20 + cards[0];
+			}
+			return ret;
+		}
+
+		// 火箭
+		if (cards[0] == NUM_XW && cards[1] == NUM_DW && length == 2)
+		{
+			ret._type = MISSILE_CARD;
+			ret._value = 120;
+			return ret;
+		}
+
+		// 三带一
+		if ((cards[0] == cards[length - 2] && length == 4)
+			|| (cards[1] == cards[length - 1] && length == 4))
+		{
+			ret._type = THREE_ONE_CARD;
+			if ((cards[0] == cards[length - 2] && length == 4))
+			{
+				ret._value = 40 + cards[0];
+			}
+			else
+			{
+				ret._value = 40 + cards[1];
+			}
+
+			return ret;
+		}
+	}
+
+	// 大于等于5张牌
+	else if (length >= 5)
+	{
+		// 连牌
+		if (IsContinuous(cards) && IsLessTwo(cards))
+		{
+			ret._type = CONNECT_CARD;
+			ret._value = 60 + cards[0];
+			return ret;
+		}
+
+		// 连对
+		if (length >= 6 && length % 2 == 0) // 判断是否大于六张，且为双数
+		{
+			// 判断是否都是对子
+			bool is_all_double = true;
+
+			for (int i=0; i<length; i+=2)
+			{
+				if (cards[i] != cards[i+1])
+				{
+					is_all_double = false;
+					break;
+				}
+			}
+
+			// 判断对子是否连续
+			if (is_all_double)
+			{
+				std::vector<int> vec_single;
+				for (int i=0; i<length; i+=2)
+				{
+					vec_single.push_back(cards[i]);
+				}
+
+				if (IsContinuous(vec_single))
+				{
+					ret._type = COMPANY_CARD;
+					ret._value = 80 + cards[0];
+					return ret;
+				}
+			}
+		}
+
+		// 将数组中的牌数分到结构体CRAD_INDEX中
+		CRAD_INDEX card_index;
+
+		for (int i=0; i<length; )
+		{
+			if (i+1 < length && cards[i] == cards[i+1])
+			{
+				if (i+2 < length && cards[i+1] == cards[i+2])
+				{
+					if (i+3 < length && cards[i+2] == cards[i+3])
+					{
+						card_index.four_index.push_back(cards[i]);
+						i += 4;
+					}
+					else
+					{
+						card_index.three_index.push_back(cards[i]);
+						i += 3;
+					}
+				}
+				else
+				{
+					card_index.double_index.push_back(cards[i]);
+					i += 2;
+				}
+			}
+			else
+			{
+				card_index.single_index.push_back(cards[i]);
+				i++;
+			}
+		}
+
+		// 3带对
+		if (card_index.three_index.size() == 1 && card_index.double_index.size() == 1 && card_index.four_index.empty() && card_index.single_index.empty())
+		{
+			ret._type = THREE_TWO_CARD;
+			ret._value = 40 + card_index.three_index[0];
+			return ret;
+		}
+
+		// 飞机
+		// 前提：两个连续三张的
+		if (card_index.four_index.empty() && card_index.three_index.size() == 2 && card_index.three_index[0] + 1 == card_index.three_index[1])
+		{
+			// 333444
+			if (card_index.single_index.empty() && card_index.double_index.empty())
+			{
+				ret._type = AIRCRAFT_CARD;
+				ret._value = 80 + cards[0];
+				return ret;
+			}
+
+			// 33344456
+			if (card_index.double_index.empty() && card_index.single_index.size() == 2)
+			{
+				ret._type = AIRCRAFT_SINGLE_CARD;
+				ret._value = 80 + cards[0];
+				return ret;
+			}
+
+			// 33344455
+			if (card_index.single_index.empty() && card_index.double_index.size() == 1)
+			{
+				ret._type = AIRCRAFT_SINGLE_CARD;
+				ret._value = 80 + cards[0];
+				return ret;
+			}
+
+			// 3334445566
+			if (card_index.single_index.empty() && card_index.double_index.size() == 2)
+			{
+				ret._type = AIRCRAFT_DOUBLE_CARD;
+				ret._value = 80 + cards[0];
+				return ret;
+			}
+		}
+
+		// 4带2
+		if (card_index.four_index.size() == 1 && length % 2 == 0 && card_index.three_index.empty())
+		{
+
+			// 444423
+			if (card_index.single_index.size() == 2 && card_index.double_index.empty())
+			{
+				ret._type = BOMB_TWO_CARD;
+				ret._value = 100 + cards[0];
+				return ret;
+			}
+
+			// 444422
+			if (card_index.double_index.size() == 1 && card_index.single_index.empty())
+			{
+				ret._type = BOMB_TWO_CARD;
+				ret._value = 80 + cards[0];
+				return ret;
+			}
+
+			// 44442233
+			if (card_index.double_index.size() == 2 && card_index.single_index.empty())
+			{
+				ret._type = BOMB_TWOOO_CARD;
+				ret._value = 80 + cards[0];
+				return ret;
+			}
+		}
+	}
+
+	ret._type = ERROR_CARD;
+	ret._value = 0;
+	return ret;
+}
+
 //////////////////////////////////////////////////////////////////////////
 //截屏函数
 //////////////////////////////////////////////////////////////////////////
@@ -133,46 +379,4 @@ cocos2d::RenderTexture* ScreenShot(const bool bIsSave, std::function<void(cocos2
 		}
 	}
 	return textureScreen;
-}
-
-int code_convert(const char *from_charset, const char *to_charset, const char *inbuf, size_t inlen, char *outbuf, size_t outlen)
-{
-	iconv_t cd;
-	const char *temp = inbuf;
-	const char **pin = &temp;
-	char **pout = &outbuf;
-	memset(outbuf,0,outlen);
-	cd = iconv_open(to_charset,from_charset);
-	if(cd==0) return -1;
-	if(iconv(cd,pin,&inlen,pout,&outlen)==-1) return -1;
-	iconv_close(cd);
-	return 0;
-}
-
-/*UTF8转为GB2312*/
-std::string u2a(const char *inbuf)
-{
-	size_t inlen = strlen(inbuf);
-	char * outbuf = new char[inlen * 2 + 2];
-	std::string strRet;
-	if(code_convert("utf-8", "gb2312", inbuf, inlen, outbuf, inlen * 2 + 2) == 0)
-	{
-		strRet = outbuf;
-	}
-	delete [] outbuf;
-	return strRet;
-}
-
-/*GB2312转为UTF8*/
-std::string a2u(const char *inbuf)
-{
-	size_t inlen = strlen(inbuf);
-	char * outbuf = new char[inlen * 2 + 2];
-	std::string strRet;
-	if(code_convert("gb2312", "utf-8", inbuf, inlen, outbuf, inlen * 2 + 2) == 0)
-	{
-		strRet = outbuf;
-	}
-	delete [] outbuf;
-	return strRet;
 }

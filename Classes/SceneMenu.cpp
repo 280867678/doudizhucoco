@@ -1,7 +1,9 @@
 #include "SceneMenu.h"
 #include "SceneGame.h"
+#include"SimpleAudioEngine.h"   //包含声音引擎头文件  
 
-USING_NS_CC;
+USING_NS_CC;  
+using namespace CocosDenshion;//使用该声音引擎的命名空间  
 
 Scene* SceneMenu::createScene()
 {
@@ -19,6 +21,9 @@ bool SceneMenu::init()
     {
         return false;
     }
+
+	// 播放背景音乐
+	SimpleAudioEngine::getInstance()->playBackgroundMusic("sound/table_background_music.mp3", true);
     
     Size visibleSize = Director::getInstance()->getVisibleSize();
     Vec2 origin = Director::getInstance()->getVisibleOrigin();
@@ -49,10 +54,12 @@ bool SceneMenu::init()
 
 void SceneMenu::menuBeginCallback(Ref* pSender)
 {
+	SimpleAudioEngine::getInstance()->stopBackgroundMusic();
 	Director::getInstance()->replaceScene(SceneGame::createScene());
 }
 
 void SceneMenu::menuExitCallback(Ref* pSender)
 {
+	SimpleAudioEngine::getInstance()->stopBackgroundMusic();
     Director::getInstance()->end();
 }

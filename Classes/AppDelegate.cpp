@@ -1,7 +1,11 @@
 #include "AppDelegate.h"
 #include "SceneMenu.h"
+#include"SimpleAudioEngine.h"   //包含声音引擎头文件  
+#include "AppMacros.h"
+#include "AppCommon.h"
 
-USING_NS_CC;
+USING_NS_CC;  
+using namespace CocosDenshion;//使用该声音引擎的命名空间  
 
 AppDelegate::AppDelegate() 
 {
@@ -33,9 +37,14 @@ bool AppDelegate::applicationDidFinishLaunching()
 	{
         glview = GLViewImpl::create("doudizhu");
 		// 960 540
-		glview->setFrameSize(1200,675);
+		//glview->setFrameSize(1200,675);
         director->setOpenGLView(glview);
+
+		glview->setFrameSize(WINSIZE_W,WINSIZE_H);
+		glview->setDesignResolutionSize(1200,675, ResolutionPolicy::NO_BORDER);
     }
+
+	//director->setContentScaleFactor(SCALE_FACTOR);
 
     // 设置帧数
     director->setDisplayStats(true);
@@ -59,7 +68,7 @@ void AppDelegate::applicationDidEnterBackground() {
     Director::getInstance()->stopAnimation();
 
     // if you use SimpleAudioEngine, it must be pause
-    // SimpleAudioEngine::getInstance()->pauseBackgroundMusic();
+     SimpleAudioEngine::getInstance()->pauseBackgroundMusic();
 }
 
 // this function will be called when the app is active again
@@ -67,5 +76,5 @@ void AppDelegate::applicationWillEnterForeground() {
     Director::getInstance()->startAnimation();
 
     // if you use SimpleAudioEngine, it must resume here
-    // SimpleAudioEngine::getInstance()->resumeBackgroundMusic();
+     SimpleAudioEngine::getInstance()->resumeBackgroundMusic();
 }

@@ -21,11 +21,15 @@ public:
 	void menuRestartCallback(cocos2d::Ref* pSender);
 	void menuQiangCallback(cocos2d::Ref* pSender);
 	void menuBuQiangCallback(cocos2d::Ref* pSender);
+	void menuTiShiCallback(cocos2d::Ref* pSender);
     void menuBuChuCallback(cocos2d::Ref* pSender);
 	void menuChuPaiCallback(cocos2d::Ref* pSender);
 
 	void callbackChuPai2(cocos2d::Node* node);
 	void callbackChuPai3(cocos2d::Node* node);
+
+	void callbackQiangDiZhu2(cocos2d::Node* node);
+	void callbackQiangDiZhu3(cocos2d::Node* node);
 
 	void update(float delta);
 	void OutCard(float delta);
@@ -41,9 +45,6 @@ public:
 
 	void initCards();
 
-	CARDS_DATA PanDuanPaiXing(cocos2d::CCArray* cards);//≈–∂œ≈∆–Õ
-	CARDS_DATA PanDuanPaiXing(std::vector<PokeInfo>& cards);//≈–∂œ≈∆–Õ
-	CARDS_DATA PanDuanPaiXing(std::vector<int>& cards);//≈–∂œ≈∆–Õ
 	cocos2d::CCArray* getArrPlayerOut() { return _arrPlayerOut; }
 
 	//∆¡ƒªΩÿÕº

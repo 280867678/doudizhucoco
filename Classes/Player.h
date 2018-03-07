@@ -3,6 +3,10 @@
 
 #include "cocos2d.h"
 #include "Poke.h"
+#include "SimpleAudioEngine.h"   //包含声音引擎头文件
+
+USING_NS_CC;  
+using namespace CocosDenshion;//使用该声音引擎的命名空间  
 
 // 牌型
 enum  CARD_TYPE
@@ -137,6 +141,8 @@ public:
 	void ChuPai(SceneGame* scene, bool isFollow, CARD_TYPE cardType, unsigned int count, unsigned int value);
 	void BuChu();
 	void ChaiPai();
+
+	void PlayEffectForCards(std::vector<int>& vec);
 
 	void ShowTipInfo(bool isFollow, CARD_TYPE cardType, unsigned int count, unsigned int value);
 

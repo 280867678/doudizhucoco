@@ -2,8 +2,6 @@
 #include "SceneGame.h"
 #include "AppCommon.h"
 
-USING_NS_CC;
-
 Player* Player::create(std::string name, int score, bool isHero)
 {
 	Player *sprite = new (std::nothrow) Player();
@@ -34,7 +32,7 @@ bool Player::init(std::string name, int score, bool isHero)
 	this->addChild(_cardsManager, 1);
 
 	// 玩家名称
-	_labelName = Label::createWithTTF(a2u(name.c_str()), "fonts/FZCuYuan-M03S.ttf", 18);
+	_labelName = Label::createWithTTF(_name, "fonts/FZCuYuan-M03S.ttf", 18);
 	//_labelName->setColor(Color3B(255, 255, 0));
 	_labelName->setPosition(0,-70);
 	this->addChild(_labelName,1);
@@ -45,15 +43,15 @@ bool Player::init(std::string name, int score, bool isHero)
 	this->addChild(huanledou, 0);
 
 	// 玩家分数
-	_labelScore = Label::createWithTTF(a2u(this->GetScoreString().c_str()), "fonts/FZCuYuan-M03S.ttf", 18);
+	_labelScore = Label::createWithTTF(this->GetScoreString().c_str(), "fonts/FZCuYuan-M03S.ttf", 18);
 	//_labelScore->setColor(Color3B(255, 255, 0));
 	_labelScore->setPosition(100,-70);
 	this->addChild(_labelScore,1);
 
 	// 提示信息
-	_labelTipInfo = Label::createWithTTF(a2u("No cars to discard!"), "fonts/FZCuYuan-M03S.ttf", 18);
+	_labelTipInfo = Label::createWithTTF(FileUtils::getInstance()->getValueMapFromFile("strings.xml").at("tipinfo").asString(), "fonts/FZCuYuan-M03S.ttf", 24);
 	_labelTipInfo->setColor(Color3B(255, 255, 0));
-	_labelTipInfo->setPosition(500,100);
+	_labelTipInfo->setPosition(550,50);
 	this->addChild(_labelTipInfo,1);
 	_labelTipInfo->setVisible(false);
 
@@ -63,7 +61,7 @@ bool Player::init(std::string name, int score, bool isHero)
 	this->addChild(avatorBg, 0);
 
 	char str_avator_image[255] = { 0 };
-	sprintf_s(str_avator_image, "head/vtouxiang_%02d.png", rand() % 14 + 1);
+	sprintf(str_avator_image, "head/vtouxiang_%02d.png", rand() % 14 + 1);
 	auto avator = Sprite::create(str_avator_image);
 	this->addChild(avator, 0);
 
@@ -73,14 +71,14 @@ bool Player::init(std::string name, int score, bool isHero)
 	back->setPosition(100,0);
 	this->addChild(back,1);
 
-	_labelPokeCount = Label::createWithTTF(a2u("0"), "fonts/FZCuYuan-M03S.ttf", 130);
+	_labelPokeCount = Label::createWithTTF("0", "fonts/FZCuYuan-M03S.ttf", 130);
 	_labelPokeCount->setPosition(70,110);
 	back->addChild(_labelPokeCount,1);
 
 	// 出牌区
 	_exhibitionZone = PokeExhibitionZone::create();
 	if (isHero)
-		_exhibitionZone->setPosition(500, 100);
+		_exhibitionZone->setPosition(500, 130);
 	else
 		_exhibitionZone->setPosition(0, -150);
 	this->addChild(_exhibitionZone, 1);
@@ -116,7 +114,7 @@ int Player::GetScore()
 std::string Player::GetScoreString()
 {
 	char tmp[255] = {0};
-	sprintf_s(tmp, "%d", _score);
+	sprintf(tmp, "%d", _score);
 	return std::string(tmp);
 }
 
@@ -124,7 +122,7 @@ void Player::Score(int delta_score)
 {
 	_score += delta_score;
 	
-	_labelScore->setString(a2u(this->GetScoreString().c_str()));
+	_labelScore->setString(this->GetScoreString().c_str());
 }
 
 void Player::setDiZhu()
@@ -161,30 +159,39 @@ void Player::FaPai(SceneGame* scene, PokeInfo info)
 void Player::ShowTipInfo(bool isFollow, CARD_TYPE cardType, unsigned int count, unsigned int value)
 {
 	// 智能提示部分--------------------------------------------------------------------------------
-	if (isFollow)
-	{
-		std::vector<int>& vec = FindFollowCards(cardType, count, value);
-		if (vec.empty())
-		{
-			// 提示无大过上家的牌
-			_labelTipInfo->setVisible(true);
-		}
-		else
-		{
-			// 有打过上家的牌
-			_labelTipInfo->setVisible(false);
 
-			// 从手牌中找出要出的牌并选中
-			for (int j=0; j<_vecOutCards.size(); j++)
+	// 取消所有选牌
+	for (int i=0; i<_cardsManager->getChildren().size(); i++)
+	{
+		Poke* card = dynamic_cast<Poke*>(_cardsManager->getChildren().at(i));
+		if (card != NULL)
+		{
+			card->unSelect();
+		}
+	}
+
+	// 查询
+	std::vector<int>& vec = isFollow ? FindFollowCards(cardType, count, value) : FindOutCards();
+	if (vec.empty())
+	{
+		// 提示无大过上家的牌
+		_labelTipInfo->setVisible(true);
+	}
+	else
+	{
+		// 有打过上家的牌
+		_labelTipInfo->setVisible(false);
+
+		// 从手牌中找出要出的牌并选中
+		for (int j=0; j<vec.size(); j++)
+		{
+			for (auto it=_cardsManager->getChildren().begin(); it!=_cardsManager->getChildren().end(); it++)
 			{
-				for (auto it=_cardsManager->getChildren().begin(); it!=_cardsManager->getChildren().end(); it++)
+				Poke* card = dynamic_cast<Poke*>(*it);
+				if (card != NULL && !card->isSelected() && card->getInfo()._num == vec[j])
 				{
-					Poke* card = dynamic_cast<Poke*>(*it);
-					if (card != NULL && card->getInfo()._num == _vecOutCards.at(j)._num)
-					{
-						card->Select();
-						break;
-					}
+					card->Select();
+					break;
 				}
 			}
 		}
@@ -192,6 +199,9 @@ void Player::ShowTipInfo(bool isFollow, CARD_TYPE cardType, unsigned int count, 
 
 	// end------------------------------------------------------------------------------------------
 }
+
+int s_index_sound_buyao = 1;
+int s_index_sound_dani = 1;
 
 void Player::ChuPai(SceneGame* scene, bool isFollow, CARD_TYPE cardType, unsigned int count, unsigned int value)
 {
@@ -237,7 +247,7 @@ void Player::ChuPai(SceneGame* scene, bool isFollow, CARD_TYPE cardType, unsigne
 			{
 				PokeInfo info;
 				info._num = (PokeNum)vec[i];
-				//info._tag = (PokeTag)0;	// 因为花色不影响牌值的大小，所以暂时空着，下面找到牌再赋值
+				info._tag = (PokeTag)0;	// 因为花色不影响牌值的大小，所以暂时空着，下面找到牌再赋值
 				_vecOutCards.push_back(info);
 			}
 
@@ -270,6 +280,23 @@ void Player::ChuPai(SceneGame* scene, bool isFollow, CARD_TYPE cardType, unsigne
 		}
 	}
 	
+	CARDS_DATA vecOutCardsData = PanDuanPaiXing(_vecOutCards);
+	if (isFollow && (vecOutCardsData._type != BOMB_CARD || vecOutCardsData._type != MISSILE_CARD))
+	{
+		char str_music[255] = {0};
+		sprintf(str_music, "sound/Man/dani%d.ogg", s_index_sound_dani%4 + 1);
+		SimpleAudioEngine::getInstance()->playEffect(str_music);
+		s_index_sound_dani++;
+	}
+	else
+	{
+		std::vector<int> vec;
+		for (int i=0; i<_vecOutCards.size(); i++)
+		{
+			vec.push_back(_vecOutCards[i]._num);
+		}
+		PlayEffectForCards(vec);
+	}
 	_exhibitionZone->chuPai(_vecOutCards);
 	
 	updateCards();
@@ -278,6 +305,77 @@ void Player::ChuPai(SceneGame* scene, bool isFollow, CARD_TYPE cardType, unsigne
 	{
 		// 胜利
 		scene->gameover(_id);
+	}
+}
+
+void Player::PlayEffectForCards(std::vector<int>& vec)
+{
+	// 根据牌型播放音效
+	CARDS_DATA vecOutCardsData = PanDuanPaiXing(_vecOutCards);
+	switch (vecOutCardsData._type)
+	{
+	case SINGLE_CARD		://单牌	
+		{
+			char str_music[255] = {0};
+			sprintf(str_music, "sound/Man/%d.ogg", vec.at(0)+1);
+			SimpleAudioEngine::getInstance()->playEffect(str_music);
+		}
+		break;
+	case DOUBLE_CARD		://对子
+		{
+			char str_music[255] = {0};
+			sprintf(str_music, "sound/Man/dui%d.ogg", vec.at(0)+1);
+			SimpleAudioEngine::getInstance()->playEffect(str_music);
+		}
+		break;
+	case THREE_CARD			://3不带
+		{
+			char str_music[255] = {0};
+			sprintf(str_music, "sound/Man/tuple%d.ogg", vec.at(0)+1);
+			SimpleAudioEngine::getInstance()->playEffect(str_music);
+		}
+		break;
+	case BOMB_CARD			://炸弹
+		SimpleAudioEngine::getInstance()->playEffect("sound/Man/zhadan.ogg");
+		break;
+	case MISSILE_CARD		://火箭
+		SimpleAudioEngine::getInstance()->playEffect("sound/Man/wangzha.ogg");
+		break;
+	case THREE_ONE_CARD		://3带1
+		SimpleAudioEngine::getInstance()->playEffect("sound/Man/sandaiyi.ogg");
+		break;
+	case THREE_TWO_CARD		://3带2
+		SimpleAudioEngine::getInstance()->playEffect("sound/Man/sandaiyidui.ogg");
+		break;
+	case BOMB_TWO_CARD		://四个带2张单牌
+		SimpleAudioEngine::getInstance()->playEffect("sound/Man/sidaier.ogg");
+		break;
+	case BOMB_TWOOO_CARD	://四个带2对
+		SimpleAudioEngine::getInstance()->playEffect("sound/Man/sidailiangdui.ogg");
+		break;
+	case CONNECT_CARD		://连牌
+		SimpleAudioEngine::getInstance()->playEffect("sound/Man/shunzi.ogg");
+		break;
+	case COMPANY_CARD		://连队
+		SimpleAudioEngine::getInstance()->playEffect("sound/Man/liandui.ogg");
+		break;
+	case AIRCRAFT_CARD		://飞机不带
+		SimpleAudioEngine::getInstance()->playEffect("sound/Man/feiji.ogg");
+		break;
+	case AIRCRAFT_SINGLE_CARD://飞机带单牌
+		SimpleAudioEngine::getInstance()->playEffect("sound/Man/feiji.ogg");
+		break;
+	case AIRCRAFT_DOUBLE_CARD://飞机带对子
+		SimpleAudioEngine::getInstance()->playEffect("sound/Man/feiji.ogg");
+		break;
+	default:
+		{
+			char str_music[255] = {0};
+			sprintf(str_music, "sound/Man/buyao%d.ogg", s_index_sound_buyao%4 + 1);
+			SimpleAudioEngine::getInstance()->playEffect(str_music);
+			s_index_sound_dani++;
+		}
+		break;
 	}
 }
 
@@ -502,6 +600,9 @@ void Player::clearCards()
 
 void Player::BuChu()
 {
+	// 提示无大过上家的牌
+	_labelTipInfo->setVisible(false);
+
 	clearCards();
 	_vecOutCards.clear();
 
@@ -671,21 +772,28 @@ void Player::ChaiPai()
 			}
 		}
 
-		// 如果此牌不是对子
-		auto itor = std::find(card_ii.begin(), card_ii.end(), card_i[i]);
-		if (itor == card_ii.end())
-		{
-			// 单张
-			if (!is_in_link)
-			{
-				CARDS_DATA temp;
-				temp._cards.push_back(card_i[i]);
-				temp._type = SINGLE_CARD;
-				temp._value = 0+card_i[i];
+// 		// 如果此牌不是对子
+// 		auto itor = std::find(card_ii.begin(), card_ii.end(), card_i[i]);
+// 		if (itor == card_ii.end())
+// 		{
+// 			// 单张
+// 			if (!is_in_link)
+// 			{
+// 				CARDS_DATA temp;
+// 				temp._cards.push_back(card_i[i]);
+// 				temp._type = SINGLE_CARD;
+// 				temp._value = 0+card_i[i];
+// 
+// 				_allCardGroups.push_back(temp);
+// 			}
+// 		}
 
-				_allCardGroups.push_back(temp);
-			}
-		}
+		CARDS_DATA temp;
+		temp._cards.push_back(card_i[i]);
+		temp._type = SINGLE_CARD;
+		temp._value = 0+card_i[i];
+
+		_allCardGroups.push_back(temp);
 	}
 
 	// 双顺
