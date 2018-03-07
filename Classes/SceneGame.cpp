@@ -1,6 +1,7 @@
 #include "SceneGame.h"
 #include "Player.h"
 #include "SceneMenu.h"
+#include "SpriteBlur.h"
 
 USING_NS_CC;
 
@@ -11,6 +12,53 @@ struct CRAD_INDEX
 	std::vector<int>	three_index;	//记录3张
 	std::vector<int>	four_index;		//记录4张
 };
+
+//////////////////////////////////////////////////////////////////////////
+// 玩家名字列表
+
+char* name_list[] = 
+{
+	"叶文洁",
+	"汪淼",
+	"史强",
+	"常伟思",
+	"杨冬",
+	"丁仪",
+	"伊文斯",
+	"罗辑",
+	"章北海",
+	"庄颜",
+	"东方延绪",
+	"云天明",
+	"程心",
+	"艾AA",
+	"关一帆"
+};
+
+//////////////////////////////////////////////////////////////////////////
+// 运行时玩家信息存储
+
+struct PlayerInfo
+{
+	std::string _name;
+	int			_score;
+};
+
+struct RunTimeData
+{
+	RunTimeData()
+	{
+		_isReady = false;
+	}
+
+	bool		_isReady;	
+
+	PlayerInfo	_playerinfo1;
+	PlayerInfo	_playerinfo2;
+	PlayerInfo	_playerinfo3;
+};
+
+RunTimeData s_runtimeData;
 
 //
 // SceneGame
@@ -61,14 +109,6 @@ bool SceneGame::init()
 	_menuReady = Menu::create(itemReady, NULL);
 	this->addChild(_menuReady, 1);
 
-	// 重开菜单
-
-	auto itemRestart = customMenuItemWithSpriteFrameName("ddzsingle_maplvl_btn_restart.png", "ddzsingle_maplvl_btn_restart.png", CC_CALLBACK_1(SceneGame::menuRestartCallback, this));
-	itemRestart->setPosition(0, -150);
-	_menuRestart = Menu::create(itemRestart, NULL);
-	this->addChild(_menuRestart, 101);
-	_menuRestart->setVisible(false);
-
 	// 抢地主菜单
 
 	auto itemQiang = customMenuItem("item_qiangdizhu.png", "item_qiangdizhu.png", CC_CALLBACK_1(SceneGame::menuQiangCallback, this));
@@ -93,18 +133,51 @@ bool SceneGame::init()
 	this->addChild(_menuChuPai, 1);
 	_menuChuPai->setVisible(false);
 
+	// 玩家信息读取
+	srand(time(0));
+
+	// 如果首次进入此处，创建人物信息
+	if (!s_runtimeData._isReady)
+	{
+		int name_index_1 = rand()%(sizeof(name_list)/sizeof(name_list[0]));
+		int name_index_2 = rand()%(sizeof(name_list)/sizeof(name_list[0]));
+		int name_index_3 = rand()%(sizeof(name_list)/sizeof(name_list[0]));
+
+		while (name_index_2 == name_index_1)
+		{
+			name_index_2 = rand()%(sizeof(name_list)/sizeof(name_list[0]));
+		}
+
+		while (name_index_2 == name_index_1 || name_index_3 == name_index_1)
+		{
+			name_index_3 = rand()%(sizeof(name_list)/sizeof(name_list[0]));
+		}
+
+		s_runtimeData._playerinfo1._name = name_list[name_index_1];
+		s_runtimeData._playerinfo1._score = 5000;
+		s_runtimeData._playerinfo2._name = name_list[name_index_2];
+		s_runtimeData._playerinfo2._score = 5000;
+		s_runtimeData._playerinfo3._name = name_list[name_index_3];
+		s_runtimeData._playerinfo3._score = 5000;
+
+		s_runtimeData._isReady = true;
+	}
+
 	// 玩家
 
-	_player1 = Player::create("Player1", true);
+	_player1 = Player::create(s_runtimeData._playerinfo1._name, s_runtimeData._playerinfo1._score, true);
 	_player1->setPosition(70, 300);
+	_player1->SetPlayerID(1);
 	this->addChild(_player1);
 
-	_player2 = Player::create("Robot1", false);
+	_player2 = Player::create(s_runtimeData._playerinfo2._name, s_runtimeData._playerinfo2._score, false);
 	_player2->setPosition(1000, 600);
+	_player2->SetPlayerID(2);
 	this->addChild(_player2);
 
-	_player3 = Player::create("Robot2", false);
+	_player3 = Player::create(s_runtimeData._playerinfo3._name, s_runtimeData._playerinfo3._score, false);
 	_player3->setPosition(70, 600);
+	_player3->SetPlayerID(3);
 	this->addChild(_player3);
 
 	// 底牌区
@@ -114,16 +187,15 @@ bool SceneGame::init()
 
 	// 初始化牌堆
 	initCards();
-
-	// 洗牌
-	srand(time(0));
-	std::random_shuffle(_pokeInfo.begin(), _pokeInfo.end());
     
 	_arrPlayerOut = CCArray::create();
 	_arrPlayerOut->retain();
 
 	_state = 1;
 	_gameover = false;
+	_begin = false;
+
+	//jiesuan(1);
 
     return true;
 }
@@ -149,38 +221,74 @@ void SceneGame::initCards()
 	_pokeInfo.push_back(info);
 }
 
+static int index_fapai = 0; //发牌时的索引
+
 void SceneGame::faPai()
 {
-	// 发牌
+	// 洗牌
+	index_fapai = 0;
 
-	for (int i = 0; i < 54; i++)
-	{
-		if (i >= 51)
-		{
-			//底牌
-			_bottomCardZone->Show(_pokeInfo.at(i));
-			_vecDiPai.push_back(_pokeInfo.at(i));
-		}
-		else
-		{
-			if (i%3==0)
-			{
-				// 角色1
-				_player1->FaPai(this, _pokeInfo.at(i));
-			} else if (i%3==1)
-			{
-				// 角色2
-				_player2->FaPai(this, _pokeInfo.at(i));
-			} else if (i%3==2)
-			{
-				// 角色3
-				_player3->FaPai(this, _pokeInfo.at(i));
-			}
-		}
-	}
+	srand(time(0));
+	std::random_shuffle(_pokeInfo.begin(), _pokeInfo.end());
+
+	// 发牌
+	auto delay = DelayTime::create(0.04);
+	auto callback = CallFuncN::create(CC_CALLBACK_1(SceneGame::callbackFaPai,this));
+	auto seq = Sequence::createWithTwoActions(delay, callback);
+	this->runAction(seq);
 
 	// 自动判断牌型
-	schedule(schedule_selector(SceneGame::OutCard),0.5);
+	schedule(schedule_selector(SceneGame::OutCard),0.1);
+}
+
+void SceneGame::callbackFaPai(cocos2d::Node* node)
+{
+	if (index_fapai < 51)
+	{
+		if (index_fapai%3==0)
+		{
+			// 角色1
+			_player1->FaPai(this, _pokeInfo.at(index_fapai));
+		} else if (index_fapai%3==1)
+		{
+			// 角色2
+			_player2->FaPai(this, _pokeInfo.at(index_fapai));
+		} else if (index_fapai%3==2)
+		{
+			// 角色3
+			_player3->FaPai(this, _pokeInfo.at(index_fapai));
+		}
+
+		index_fapai++;
+	}
+
+	if (index_fapai<51)
+	{
+		auto delay = DelayTime::create(0.04);
+		auto callback = CallFuncN::create(CC_CALLBACK_1(SceneGame::callbackFaPai,this));
+		auto seq = Sequence::createWithTwoActions(delay, callback);
+		this->runAction(seq);
+	}
+	else
+	{
+		_menuQiangDiZhu->setVisible(true);
+	}
+}
+
+void SceneGame::FaDiPai(Player* player)
+{
+	for (int i=index_fapai; i<54; i++)
+	{
+		//底牌
+		_bottomCardZone->Show(_pokeInfo.at(i));
+		_vecDiPai.push_back(_pokeInfo.at(i));
+	}
+
+	player->setDiZhu();
+	for (int i=0; i<_vecDiPai.size(); i++)
+	{
+		player->FaPai(this, _vecDiPai[i]);
+	}
 }
 
 void SceneGame::menuBackCallback(Ref* pSender)
@@ -193,7 +301,6 @@ void SceneGame::menuReadyCallback(Ref* pSender)
 	faPai();
 
 	_menuReady->setVisible(false);
-	_menuQiangDiZhu->setVisible(true);
 }
 
 void SceneGame::menuRestartCallback(Ref* pSender)
@@ -204,11 +311,7 @@ void SceneGame::menuRestartCallback(Ref* pSender)
 void SceneGame::menuQiangCallback(Ref* pSender)
 {
 	// 分发底牌
-	for (int i=0; i<_vecDiPai.size(); i++)
-	{
-		_player1->setDiZhu();
-		_player1->FaPai(this, _vecDiPai[i]);
-	}
+	FaDiPai(_player1);
 
 	// 切换菜单可见
 	_menuQiangDiZhu->setVisible(false);
@@ -217,16 +320,42 @@ void SceneGame::menuQiangCallback(Ref* pSender)
 
 void SceneGame::menuBuQiangCallback(Ref* pSender)
 {
-	// 分发底牌
-	for (int i=0; i<_vecDiPai.size(); i++)
-	{
-		_player2->setDiZhu();
-		_player2->FaPai(this, _vecDiPai[i]);
-	}
-
 	// 切换菜单可见
 	_menuQiangDiZhu->setVisible(false);
-	_menuChuPai->setVisible(true);
+	//_menuChuPai->setVisible(true);
+
+	// 分发底牌
+	
+	// 如果玩家不抢地主，则由下家随机
+	if (_player2->IsQiangDiZhu())
+	{
+		FaDiPai(_player2);
+
+		if (!_gameover)
+		{
+			auto delay = DelayTime::create(3);
+			auto callback = CallFuncN::create(CC_CALLBACK_1(SceneGame::callbackChuPai2,this));
+			auto seq = Sequence::createWithTwoActions(delay, callback);
+			this->runAction(seq);
+		}
+	}
+	else
+	{
+		FaDiPai(_player3);
+
+		if (!_gameover)
+		{
+			auto delay = DelayTime::create(3);
+			auto callback = CallFuncN::create(CC_CALLBACK_1(SceneGame::callbackChuPai3,this));
+			auto seq = Sequence::createWithTwoActions(delay, callback);
+			this->runAction(seq);
+		}
+	}
+
+	if (!_begin)
+	{
+		_begin = true;
+	}
 }
 
 void SceneGame::menuBuChuCallback(Ref* pSender)
@@ -244,16 +373,43 @@ void SceneGame::menuBuChuCallback(Ref* pSender)
 
 void SceneGame::menuChuPaiCallback(Ref* pSender)
 {
-	_player3->clearCards();
+	if (!_begin)
+	{
+		_begin = true;
+	}
 
-	_player1->ChuPai(this, false, ERROR_CARD, 0, 1);
+	// 出牌之前，判断上家的牌型
+	auto player3_outcards = _player3->GetOutCards();
+	CARDS_DATA player3_card_data = PanDuanPaiXing(player3_outcards);
+
+	if (player3_outcards.empty())
+	{
+		auto player2_outcards = _player2->GetOutCards();
+		CARDS_DATA player2_card_data = PanDuanPaiXing(player2_outcards);
+		if (player2_outcards.empty())
+		{
+			_player1->ChuPai(this, false, ERROR_CARD, 0, 1);// 出牌
+		}
+		else
+		{
+			_player1->ChuPai(this, true, player2_card_data._type, player2_outcards.size(), player2_card_data._value);// 跟牌
+		}
+	}
+	else
+	{
+		_player1->ChuPai(this, true, player3_card_data._type, player3_outcards.size(), player3_card_data._value);// 跟牌
+	}
+
 	// 清空牌型判断区
 	_arrPlayerOut->removeAllObjects();
 
-	auto delay = DelayTime::create(1);
-	auto callback = CallFuncN::create(CC_CALLBACK_1(SceneGame::callbackChuPai2,this));
-	auto seq = Sequence::createWithTwoActions(delay, callback);
-	this->runAction(seq);
+	if (!_gameover)
+	{
+		auto delay = DelayTime::create(1);
+		auto callback = CallFuncN::create(CC_CALLBACK_1(SceneGame::callbackChuPai2,this));
+		auto seq = Sequence::createWithTwoActions(delay, callback);
+		this->runAction(seq);
+	}
 
 	_menuChuPai->setVisible(false);
 }
@@ -261,43 +417,58 @@ void SceneGame::menuChuPaiCallback(Ref* pSender)
 void SceneGame::callbackChuPai2(cocos2d::Node* node)
 {
 	// 出牌之前，判断上家的牌型
-	CARD_TYPE type_out_cards = PanDuanPaiXing(_vecOutCards);
+	auto player1_outcards = _player1->GetOutCards();
+	CARDS_DATA player1_card_data = PanDuanPaiXing(player1_outcards);
 
-	// 判断之后出牌
-
-	_player1->clearCards();
-
-	if (_vecOutCards.empty())
+	if (player1_outcards.empty())
 	{
-		_player2->ChuPai(this, false, type_out_cards, _vecOutCards.size(), 1);// 出牌
+		auto player3_outcards = _player3->GetOutCards();
+		CARDS_DATA player3_card_data = PanDuanPaiXing(player3_outcards);
+		if (player3_outcards.empty())
+		{
+			_player2->ChuPai(this, false, ERROR_CARD, 0, 1);// 出牌
+		}
+		else
+		{
+			_player2->ChuPai(this, true, player3_card_data._type, player3_outcards.size(), player3_card_data._value);// 跟牌
+		}
 	}
 	else
 	{
-		_player2->ChuPai(this, true, type_out_cards, _vecOutCards.size(), 1);// 跟牌
+		_player2->ChuPai(this, true, player1_card_data._type, player1_outcards.size(), player1_card_data._value);// 跟牌
 	}
 
-	auto delay = DelayTime::create(1);
-	auto callback = CallFuncN::create(CC_CALLBACK_1(SceneGame::callbackChuPai3,this));
-	auto seq = Sequence::createWithTwoActions(delay, callback);
-	this->runAction(seq);
+	if (!_gameover)
+	{
+		auto delay = DelayTime::create(1);
+		auto callback = CallFuncN::create(CC_CALLBACK_1(SceneGame::callbackChuPai3,this));
+		auto seq = Sequence::createWithTwoActions(delay, callback);
+		this->runAction(seq);
+	}
 }
 
 void SceneGame::callbackChuPai3(cocos2d::Node* node)
 {
 	// 出牌之前，判断上家的牌型
-	CARD_TYPE type_out_cards = PanDuanPaiXing(_vecOutCards);
+	auto player2_outcards = _player2->GetOutCards();
+	CARDS_DATA player2_card_data = PanDuanPaiXing(player2_outcards);
 
-	// 判断之后出牌
-
-	_player2->clearCards();
-
-	if (_vecOutCards.empty())
+	if (player2_outcards.empty())
 	{
-		_player3->ChuPai(this, false, type_out_cards, _vecOutCards.size(), 1);// 出牌
+		auto player1_outcards = _player1->GetOutCards();
+		CARDS_DATA player1_card_data = PanDuanPaiXing(player1_outcards);
+		if (player1_outcards.empty())
+		{
+			_player3->ChuPai(this, false, ERROR_CARD, 0, 1);// 出牌
+		}
+		else
+		{
+			_player3->ChuPai(this, true, player1_card_data._type, player1_outcards.size(), player1_card_data._value);// 跟牌
+		}
 	}
 	else
 	{
-		_player3->ChuPai(this, true, type_out_cards, _vecOutCards.size(), 1);// 跟牌
+		_player3->ChuPai(this, true, player2_card_data._type, player2_outcards.size(), player2_card_data._value);// 跟牌
 	}
 
 	if (!_gameover)
@@ -311,236 +482,346 @@ void SceneGame::update(float delta)
 
 }
 
+void SceneGame::setChuPaiMenuEnabled(bool isChuPai, bool isBuChu)
+{
+	((MenuItemFont *)_menuChuPai->getChildByTag(1))->setEnabled(isChuPai);//出牌
+	((MenuItemFont *)_menuChuPai->getChildByTag(0))->setEnabled(isBuChu);//不出
+}
+
 void SceneGame::OutCard(float delta)
 {
 	if (_state == 1)
 	{
-		CARD_TYPE type_card = PanDuanPaiXing(_arrPlayerOut);
-		if (type_card != ERROR_CARD)
+		// 开局
+		if (!_begin)
 		{
-			((MenuItemFont *)_menuChuPai->getChildByTag(1))->setEnabled(true);
+			CARDS_DATA card_data = PanDuanPaiXing(_arrPlayerOut);
+			setChuPaiMenuEnabled(card_data._type != ERROR_CARD, false);
 		}
+		// 已经开局
 		else
 		{
-			((MenuItemFont *)_menuChuPai->getChildByTag(1))->setEnabled(false);
+			CARDS_DATA card_data = PanDuanPaiXing(_arrPlayerOut);
+
+			auto player3_outcards = _player3->GetOutCards();
+			CARDS_DATA player3_card_data = PanDuanPaiXing(player3_outcards);
+
+			if (player3_outcards.empty())
+			{
+				auto player2_outcards = _player2->GetOutCards();
+				CARDS_DATA player2_card_data = PanDuanPaiXing(player2_outcards);
+				if (player2_outcards.empty())
+				{
+					setChuPaiMenuEnabled(card_data._type != ERROR_CARD, false);
+				}
+				else
+				{
+					// 提示部分未完善
+					//_player1->ShowTipInfo(true, player2_card_data._type, player2_card_data._cards.size(), player2_card_data._value);
+
+					if (
+						// 相同牌型
+						(card_data._type == player2_card_data._type && card_data._value > player2_card_data._value) ||
+						// 不同牌型用炸弹或火箭
+						(card_data._type != player2_card_data._type && player2_card_data._type != MISSILE_CARD && 
+						(card_data._type == BOMB_CARD || card_data._type == MISSILE_CARD) && card_data._value > player2_card_data._value))
+					{
+						setChuPaiMenuEnabled(true, true);
+					}
+					else
+					{
+						setChuPaiMenuEnabled(false, true);
+					}
+				}
+			}
+			else
+			{
+				//_player1->ShowTipInfo(true, player3_card_data._type, player3_card_data._cards.size(), player3_card_data._value);
+
+				if (
+					// 相同牌型
+					(card_data._type == player3_card_data._type && card_data._value > player3_card_data._value) ||
+					// 不同牌型用炸弹或火箭
+					(card_data._type != player3_card_data._type && player3_card_data._type != MISSILE_CARD && 
+					(card_data._type == BOMB_CARD || card_data._type == MISSILE_CARD) && card_data._value > player3_card_data._value))
+				{
+					setChuPaiMenuEnabled(true, true);
+				}
+				else
+				{
+					setChuPaiMenuEnabled(false, true);
+				}
+			}
 		}
 	}
 }
 
-void SceneGame::saveOutCards(std::vector<PokeInfo>& vec)
-{
-	_vecOutCards.clear();
-
-	for (int i = 0; i < vec.size(); i++)
-	{
-		_vecOutCards.push_back(vec[i]._num);
-	}
-}
-
-void SceneGame::gameover()
+void SceneGame::gameover(int winID)
 {
 	_gameover = true;
 
 	unschedule(schedule_selector(SceneGame::OutCard));
 
-	_menuRestart->setVisible(true);
+	//_menuRestart->setVisible(true);
 	_menuChuPai->setVisible(false);
 	_menuQiangDiZhu->setVisible(false);
 	_menuReady->setVisible(false);
 
-	jiesuan();
+	jiesuan(winID);
 }
 
-void SceneGame::jiesuan()
+int player1_delta_score = 0;
+int player2_delta_score = 0;
+int player3_delta_score = 0;
+bool isPlayerWin = false;
+
+void SceneGame::jiesuan(int winID)
 {
-	// 结算页面
+	// 结算分数
 
-	Size visibleSize = Director::getInstance()->getVisibleSize();
-	Vec2 origin = Director::getInstance()->getVisibleOrigin();
+	int base_score = 100;
+	player1_delta_score = 0;
+	player2_delta_score = 0;
+	player3_delta_score = 0;
 
-	auto jiesuanBg = Sprite::create("gameover/bg_small.png");
-	jiesuanBg->setPosition(Vec2(visibleSize.width / 2 + origin.x, visibleSize.height / 2 + origin.y));
-	this->addChild(jiesuanBg, 100);
-
-	auto tiaofu = Sprite::create("gameover/gameresult_win_tiaofu.png");
-	tiaofu->setPosition(Vec2(350, 400));
-	jiesuanBg->addChild(tiaofu, 0);
-
-	auto shengli = Sprite::createWithSpriteFrameName("ddz_result_base_word_win.png");
-	shengli->setPosition(Vec2(350, 400));
-	jiesuanBg->addChild(shengli, 0);
-}
-
-unsigned int SceneGame::GetCardLogicValue(cocos2d::CCArray* cards)
-{
-	//获取类型  
-	CARD_TYPE cbNextType= PanDuanPaiXing(cards);
-	std::vector<int> cards_num;
-	for (int i=0; i<cards->count(); i++)
+	if (winID == 1)
 	{
-		Poke* card = dynamic_cast<Poke*>(cards->getObjectAtIndex(i));
-		if (card != NULL)
+		isPlayerWin = true;
+
+		if (_player1->getIsDiZhu())
 		{
-			cards_num.push_back(card->_info._num);
+			player1_delta_score = base_score * 2;
+			player2_delta_score = base_score * -1;
+			player3_delta_score = base_score * -1;
 		}
-	}
-
-	std::sort(cards_num.begin(), cards_num.end());
-	unsigned int length = cards_num.size();
-
-	// 将数组中的牌数分到结构体CRAD_INDEX中
-	CRAD_INDEX card_index;
-
-	for (int i=0; i<length; )
-	{
-		if (i+1 < length && cards_num[i] == cards_num[i+1])
+		else if (_player2->getIsDiZhu())
 		{
-			if (i+2 < length && cards_num[i+1] == cards_num[i+2])
-			{
-				if (i+3 < length && cards_num[i+2] == cards_num[i+3])
-				{
-					card_index.four_index.push_back(cards_num[i]);
-					i += 4;
-				}
-				else
-				{
-					card_index.three_index.push_back(cards_num[i]);
-					i += 3;
-				}
-			}
-			else
-			{
-				card_index.double_index.push_back(cards_num[i]);
-				i += 2;
-			}
+			player1_delta_score = base_score * 1;
+			player2_delta_score = base_score * -1 * 2;
+			player3_delta_score = base_score * 1;
 		}
 		else
 		{
-			card_index.single_index.push_back(cards_num[i]);
-			i++;
+			player1_delta_score = base_score * 1;
+			player2_delta_score = base_score * 1;
+			player3_delta_score = base_score * -1 * 2;
+		}
+	}
+	else if (winID == 2)
+	{
+		isPlayerWin = false;
+
+		if (_player1->getIsDiZhu())
+		{
+			player1_delta_score = base_score * -1 * 2;
+			player2_delta_score = base_score * 1;
+			player3_delta_score = base_score * 1;
+		}
+		else if (_player2->getIsDiZhu())
+		{
+			player1_delta_score = base_score * -1;
+			player2_delta_score = base_score * 2;
+			player3_delta_score = base_score * -1;
+		}
+		else
+		{
+			player1_delta_score = base_score * 1;
+			player2_delta_score = base_score * 1;
+			player3_delta_score = base_score * -1 * 2;
+		}
+	}
+	else if (winID == 3)
+	{
+		isPlayerWin = false;
+
+		if (_player1->getIsDiZhu())
+		{
+			player1_delta_score = base_score * -1 * 2;
+			player2_delta_score = base_score * 1;
+			player3_delta_score = base_score * 1;
+		}
+		else if (_player2->getIsDiZhu())
+		{
+			player1_delta_score = base_score * 1;
+			player2_delta_score = base_score * -1 * 2;
+			player3_delta_score = base_score * 1;
+		}
+		else
+		{
+			player1_delta_score = base_score * -1;
+			player2_delta_score = base_score * -1;
+			player3_delta_score = base_score * 2;
 		}
 	}
 
+	// 存储分数
+	_player1->Score(player1_delta_score);
+	_player2->Score(player2_delta_score);
+	_player3->Score(player3_delta_score);
 
-	//开始对比  
-	switch(cbNextType)  
-	{  
-	case SINGLE_CARD:  
-		{
-			assert(length == 1);
-			return cards_num[0];
-		}
-	case DOUBLE_CARD:  
-		{
-			assert(length == 2);
-			return cards_num[0];
-		}
-	case THREE_CARD:  
-		{
-			assert(length == 3);
-			return cards_num[0];
-		}
-	case CONNECT_CARD:  
-		{
-			return cards_num[length - 1];
-		}
-	case COMPANY_CARD: 
-		{
-			return cards_num[length - 1];
-		}
-	case AIRCRAFT_CARD:  
-		{
-			return cards_num[length - 1];
-		}
-	case MISSILE_CARD:
-		{
-			assert(length == 2);
-			return cards_num[0];
-		}
-	case BOMB_CARD:  
-		{
-			assert(length == 4);
-			return cards_num[0];
-		}
-	case THREE_ONE_CARD:  
-		{
-			assert(card_index.three_index.size() == 1);
-			return card_index.three_index[0];
-		}
-	case THREE_TWO_CARD:  
-		{
-			assert(card_index.three_index.size() == 1);
-			return card_index.three_index[0];
-		}
-	case BOMB_TWO_CARD:  
-		{
-			assert(card_index.four_index.size() == 1);
-			return card_index.four_index[0];
-		}
-	case BOMB_TWOOO_CARD:
-		{
-			assert(card_index.four_index.size() == 1);
-			return card_index.four_index[0];
-		}
-	}  
+	s_runtimeData._playerinfo1._score = _player1->GetScore();
+	s_runtimeData._playerinfo2._score = _player2->GetScore();
+	s_runtimeData._playerinfo3._score = _player3->GetScore();
+
+	// 结算界面
+	capture(this);
+
+// 	// 结算页面
+// 	
+// 	Size visibleSize = Director::getInstance()->getVisibleSize();
+// 	Vec2 origin = Director::getInstance()->getVisibleOrigin();
+// 
+// 	auto jiesuanBg = Sprite::create("gameover/bg_small.png");
+// 	jiesuanBg->setPosition(Vec2(visibleSize.width / 2 + origin.x, visibleSize.height / 2 + origin.y));
+// 	this->addChild(jiesuanBg, 100);
+// 
+// 	auto tiaofu = Sprite::create("gameover/gameresult_win_tiaofu.png");
+// 	tiaofu->setPosition(Vec2(350, 400));
+// 	jiesuanBg->addChild(tiaofu, 0);
+// 
+// 	auto shengli = Sprite::createWithSpriteFrameName("ddz_result_base_word_win.png");
+// 	shengli->setPosition(Vec2(350, 400));
+// 	jiesuanBg->addChild(shengli, 0);
+// 
+// 	auto player = Sprite::create("owner1_lose.png");
+// 	player->setPosition(Vec2(100, 200));
+// 	jiesuanBg->addChild(player, 0);
 }
 
-bool SceneGame::CompareCard(CCArray* firstCard, CCArray* nextCard)  
-{  
-	//获取类型  
-	CARD_TYPE cbNextType= PanDuanPaiXing(nextCard);  
-	CARD_TYPE cbFirstType= PanDuanPaiXing(firstCard);  
+//
+//屏幕截图
+void SceneGame::capture(Ref* sender)
+{
+	CCLOG("ScreenShot");
+	utils::captureScreen(CC_CALLBACK_2(SceneGame::afterCapture, this), "ScreenShot.png");
+}
 
-	//类型判断  
-	if(cbNextType==ERROR_CARD) return false;  
-	if(cbNextType==MISSILE_CARD) return true;  
+//截图后执行afterCapture
+void SceneGame::afterCapture(bool succeed, const std::string& outputFile)
+{
+	if (succeed)
+	{
+		CCLOG("%s", outputFile.c_str());
+		Size visibleSize = Director::getInstance()->getVisibleSize();
+		Vec2 origin = Director::getInstance()->getVisibleOrigin();
 
-	//炸弹判断  
-	if((cbFirstType!=BOMB_CARD)&&(cbNextType==BOMB_CARD)) return true;  
-	if((cbFirstType==BOMB_CARD)&&(cbNextType!=BOMB_CARD)) return false;  
+		//显示截图
+		Sprite* sp = Sprite::create(outputFile);
+		SpriteBlur* spriteBlur = SpriteBlur::create(sp, 20.0f, 20.0f);		
+		spriteBlur->setPosition(visibleSize / 2);
+		this->addChild(spriteBlur,1000);
 
-	//规则判断  
-	if((cbFirstType!=cbNextType)||(firstCard->count()!=nextCard->count())) return false;  
+		// 结算页面
 
-	//开始对比  
-	switch(cbNextType)  
-	{  
-	case SINGLE_CARD:  
-	case DOUBLE_CARD:  
-	case THREE_CARD:  
-	case BOMB_CARD:  
-	case THREE_ONE_CARD:  
-	case THREE_TWO_CARD:
-	case BOMB_TWO_CARD:  
-	case BOMB_TWOOO_CARD:
-		{  
-			//获取数值  
-			BYTE cbNextLogicValue=GetCardLogicValue(nextCard);  
-			BYTE cbFirstLogicValue=GetCardLogicValue(firstCard);  
+		auto jiesuanBg = Sprite::create("gameover/bg_small.png");
+		jiesuanBg->setPosition(Vec2(visibleSize.width * 2 / 3 + origin.x, visibleSize.height / 2 + origin.y));
+		this->addChild(jiesuanBg, 1001);
 
-			//对比扑克  
-			return cbNextLogicValue>cbFirstLogicValue;  
-		}  
-	case CONNECT_CARD:  
-	case COMPANY_CARD:  
-	case AIRCRAFT_CARD:  
-		{
-			if (firstCard->count() == nextCard->count())
-			{
-				//获取数值  
-				BYTE cbNextLogicValue=GetCardLogicValue(nextCard);  
-				BYTE cbFirstLogicValue=GetCardLogicValue(firstCard);  
+		auto tiaofu = Sprite::create(isPlayerWin ? "gameover/gameresult_win_tiaofu.png" : "gameover/gameresult_lose_tiaofu.png");
+		tiaofu->setPosition(Vec2(350, 400));
+		jiesuanBg->addChild(tiaofu, 0);
 
-				//对比扑克  
-				return cbNextLogicValue>cbFirstLogicValue;  
-			}
-		}
-	}  
+		auto shengli = Sprite::createWithSpriteFrameName(isPlayerWin ? "ddz_result_base_word_win.png" : "ddz_result_base_word_lose.png");
+		shengli->setPosition(Vec2(350, 430));
+		jiesuanBg->addChild(shengli, 0);
 
-	return false;  
-}  
+		auto player = Sprite::create(
+			isPlayerWin ? 
+			(_player1->getIsDiZhu() ? "gameover/owner1_win.png" : "gameover/farmer1_win.png") 
+			: 
+			(_player1->getIsDiZhu() ? "gameover/owner1_lose.png" : "gameover/farmer1_lose.png"));
+		player->setPosition(Vec2(-200, 200));
+		jiesuanBg->addChild(player, 0);
 
-CARD_TYPE SceneGame::PanDuanPaiXing(CCArray* cards)
+		// 结算数据
+
+		// 昵称
+
+		auto label_name = Label::createWithTTF(a2u("昵称"), "fonts/FZCuYuan-M03S.ttf", 24);
+		label_name->setColor(Color3B(255, 0, 0));
+		label_name->setPosition(Vec2(150,300));
+		jiesuanBg->addChild(label_name,1);
+
+		// 地主标志
+		auto dizhu_flag = Sprite::createWithSpriteFrameName("ddz_result_base_dizhu_flag.png");
+		dizhu_flag->setPosition(Vec2(90, _player1->getIsDiZhu() ? 250 : (_player2->getIsDiZhu() ? 200 : (_player3->getIsDiZhu() ? 150 : 0))));
+		jiesuanBg->addChild(dizhu_flag, 0);
+
+		auto label_name_player1 = Label::createWithTTF(a2u(_player1->GetName().c_str()), "fonts/FZCuYuan-M03S.ttf", 24);
+		label_name_player1->setColor(Color3B(255, 0, 0));
+		label_name_player1->setPosition(Vec2(150,250));
+		jiesuanBg->addChild(label_name_player1,1);
+
+		auto label_name_player2 = Label::createWithTTF(a2u(_player2->GetName().c_str()), "fonts/FZCuYuan-M03S.ttf", 24);
+		label_name_player2->setColor(Color3B(255, 0, 0));
+		label_name_player2->setPosition(Vec2(150,200));
+		jiesuanBg->addChild(label_name_player2,1);
+
+		auto label_name_player3 = Label::createWithTTF(a2u(_player3->GetName().c_str()), "fonts/FZCuYuan-M03S.ttf", 24);
+		label_name_player3->setColor(Color3B(255, 0, 0));
+		label_name_player3->setPosition(Vec2(150,150));
+		jiesuanBg->addChild(label_name_player3,1);
+
+		// 欢乐豆
+
+		auto label_huanledou = Label::createWithTTF(a2u("欢乐豆"), "fonts/FZCuYuan-M03S.ttf", 24);
+		label_huanledou->setColor(Color3B(255, 0, 0));
+		label_huanledou->setPosition(Vec2(350,300));
+		jiesuanBg->addChild(label_huanledou,1);
+
+		auto label_huanledou_player1 = Label::createWithTTF(a2u(_player1->GetScoreString().c_str()), "fonts/FZCuYuan-M03S.ttf", 24);
+		label_huanledou_player1->setColor(Color3B(255, 0, 0));
+		label_huanledou_player1->setPosition(Vec2(350,250));
+		jiesuanBg->addChild(label_huanledou_player1,1);
+
+		auto label_huanledou_player2 = Label::createWithTTF(a2u(_player2->GetScoreString().c_str()), "fonts/FZCuYuan-M03S.ttf", 24);
+		label_huanledou_player2->setColor(Color3B(255, 0, 0));
+		label_huanledou_player2->setPosition(Vec2(350,200));
+		jiesuanBg->addChild(label_huanledou_player2,1);
+
+		auto label_huanledou_player3 = Label::createWithTTF(a2u(_player3->GetScoreString().c_str()), "fonts/FZCuYuan-M03S.ttf", 24);
+		label_huanledou_player3->setColor(Color3B(255, 0, 0));
+		label_huanledou_player3->setPosition(Vec2(350,150));
+		jiesuanBg->addChild(label_huanledou_player3,1);
+
+		// 分数加减
+		char str_score_delta_player1[255] = {0};
+		char str_score_delta_player2[255] = {0};
+		char str_score_delta_player3[255] = {0};
+		
+		sprintf_s(str_score_delta_player1, "%+d", player1_delta_score);
+		sprintf_s(str_score_delta_player2, "%+d", player2_delta_score);
+		sprintf_s(str_score_delta_player3, "%+d", player3_delta_score);
+
+		auto label_huanledou_d_player1 = Label::createWithTTF(a2u(str_score_delta_player1), "fonts/FZCuYuan-M03S.ttf", 24);
+		label_huanledou_d_player1->setColor(Color3B(255, 0, 0));
+		label_huanledou_d_player1->setPosition(Vec2(480,250));
+		jiesuanBg->addChild(label_huanledou_d_player1,1);
+
+		auto label_huanledou_d_player2 = Label::createWithTTF(a2u(str_score_delta_player2), "fonts/FZCuYuan-M03S.ttf", 24);
+		label_huanledou_d_player2->setColor(Color3B(255, 0, 0));
+		label_huanledou_d_player2->setPosition(Vec2(480,200));
+		jiesuanBg->addChild(label_huanledou_d_player2,1);
+
+		auto label_huanledou_d_player3 = Label::createWithTTF(a2u(str_score_delta_player3), "fonts/FZCuYuan-M03S.ttf", 24);
+		label_huanledou_d_player3->setColor(Color3B(255, 0, 0));
+		label_huanledou_d_player3->setPosition(Vec2(480,150));
+		jiesuanBg->addChild(label_huanledou_d_player3,1);
+
+		// 重开菜单
+
+		auto itemRestart = customMenuItemWithSpriteFrameName("ddzsingle_maplvl_btn_restart.png", "ddzsingle_maplvl_btn_restart.png", CC_CALLBACK_1(SceneGame::menuRestartCallback, this));
+		itemRestart->setPosition(200, -150);
+		auto menuRestart = Menu::create(itemRestart, NULL);
+		this->addChild(menuRestart, 1002);
+	}
+	else
+	{
+		CCLOG("Capture screen failed.");
+	}
+}
+
+CARDS_DATA SceneGame::PanDuanPaiXing(CCArray* cards)
 {
 	std::vector<int> vec;
 	for (int i=0; i<cards->count(); i++)
@@ -555,10 +836,27 @@ CARD_TYPE SceneGame::PanDuanPaiXing(CCArray* cards)
 	return PanDuanPaiXing(vec);
 }
 
-CARD_TYPE SceneGame::PanDuanPaiXing(std::vector<int>& cards)
+CARDS_DATA SceneGame::PanDuanPaiXing(std::vector<PokeInfo>& cards)
 {
+	std::vector<int> vec;
+	for (int i=0; i<cards.size(); i++)
+	{
+		vec.push_back(cards[i]._num);
+	}
+
+	return PanDuanPaiXing(vec);
+}
+
+CARDS_DATA SceneGame::PanDuanPaiXing(std::vector<int>& cards)
+{
+	CARDS_DATA ret;
 	unsigned int length = cards.size();
 	std::sort(cards.begin(), cards.end());
+	
+	for (int i = 0; i < length; i++)
+	{
+		ret._cards.push_back(cards[i]);
+	}
 
 	//小于5张牌
 	//单牌，对子，3不带,炸弹通用算法
@@ -567,20 +865,41 @@ CARD_TYPE SceneGame::PanDuanPaiXing(std::vector<int>& cards)
 		// 单牌/对子/三不带/炸弹
 		if(cards[0] == cards[length - 1])
 		{
-			return (CARD_TYPE)length;
+			ret._type = (CARD_TYPE)length;
+			if (length == 4)
+			{
+				ret._value = 100 + cards[0];
+			}
+			else
+			{
+				ret._value = (length - 1)*20 + cards[0];
+			}
+			return ret;
 		}
 
 		// 火箭
 		if (cards[0] == NUM_XW && cards[1] == NUM_DW && length == 2)
 		{
-			return MISSILE_CARD;
+			ret._type = MISSILE_CARD;
+			ret._value = 120;
+			return ret;
 		}
 
 		// 三带一
 		if ((cards[0] == cards[length - 2] && length == 4)
 			|| (cards[1] == cards[length - 1] && length == 4))
 		{
-			return THREE_ONE_CARD;
+			ret._type = THREE_ONE_CARD;
+			if ((cards[0] == cards[length - 2] && length == 4))
+			{
+				ret._value = 40 + cards[0];
+			}
+			else
+			{
+				ret._value = 40 + cards[1];
+			}
+			
+			return ret;
 		}
 	}
 
@@ -590,7 +909,9 @@ CARD_TYPE SceneGame::PanDuanPaiXing(std::vector<int>& cards)
 		// 连牌
 		if (IsContinuous(cards) && IsLessTwo(cards))
 		{
-			return CONNECT_CARD;
+			ret._type = CONNECT_CARD;
+			ret._value = 60 + cards[0];
+			return ret;
 		}
 
 		// 连对
@@ -619,7 +940,9 @@ CARD_TYPE SceneGame::PanDuanPaiXing(std::vector<int>& cards)
 
 				if (IsContinuous(vec_single))
 				{
-					return COMPANY_CARD;
+					ret._type = COMPANY_CARD;
+					ret._value = 80 + cards[0];
+					return ret;
 				}
 			}
 		}
@@ -660,7 +983,9 @@ CARD_TYPE SceneGame::PanDuanPaiXing(std::vector<int>& cards)
 		// 3带对
 		if (card_index.three_index.size() == 1 && card_index.double_index.size() == 1 && card_index.four_index.empty() && card_index.single_index.empty())
 		{
-			return THREE_TWO_CARD;
+			ret._type = THREE_TWO_CARD;
+			ret._value = 40 + card_index.three_index[0];
+			return ret;
 		}
 
 		// 飞机
@@ -670,25 +995,33 @@ CARD_TYPE SceneGame::PanDuanPaiXing(std::vector<int>& cards)
 			// 333444
 			if (card_index.single_index.empty() && card_index.double_index.empty())
 			{
-				return AIRCRAFT_CARD;
+				ret._type = AIRCRAFT_CARD;
+				ret._value = 80 + cards[0];
+				return ret;
 			}
 
 			// 33344456
 			if (card_index.double_index.empty() && card_index.single_index.size() == 2)
 			{
-				return AIRCRAFT_SINGLE_CARD;
+				ret._type = AIRCRAFT_SINGLE_CARD;
+				ret._value = 80 + cards[0];
+				return ret;
 			}
 
 			// 33344455
 			if (card_index.single_index.empty() && card_index.double_index.size() == 1)
 			{
-				return AIRCRAFT_SINGLE_CARD;
+				ret._type = AIRCRAFT_SINGLE_CARD;
+				ret._value = 80 + cards[0];
+				return ret;
 			}
 
 			// 3334445566
 			if (card_index.single_index.empty() && card_index.double_index.size() == 2)
 			{
-				return AIRCRAFT_DOUBLE_CARD;
+				ret._type = AIRCRAFT_DOUBLE_CARD;
+				ret._value = 80 + cards[0];
+				return ret;
 			}
 		}
 
@@ -699,22 +1032,30 @@ CARD_TYPE SceneGame::PanDuanPaiXing(std::vector<int>& cards)
 			// 444423
 			if (card_index.single_index.size() == 2 && card_index.double_index.empty())
 			{
-				return BOMB_TWO_CARD;
+				ret._type = BOMB_TWO_CARD;
+				ret._value = 100 + cards[0];
+				return ret;
 			}
 
 			// 444422
 			if (card_index.double_index.size() == 1 && card_index.single_index.empty())
 			{
-				return BOMB_TWO_CARD;
+				ret._type = BOMB_TWO_CARD;
+				ret._value = 80 + cards[0];
+				return ret;
 			}
 
 			// 44442233
 			if (card_index.double_index.size() == 2 && card_index.single_index.empty())
 			{
-				return BOMB_TWOOO_CARD;
+				ret._type = BOMB_TWOOO_CARD;
+				ret._value = 80 + cards[0];
+				return ret;
 			}
 		}
 	}
 
-	return ERROR_CARD;
+	ret._type = ERROR_CARD;
+	ret._value = 0;
+	return ret;
 }

@@ -121,37 +121,67 @@ class Player : public cocos2d::Sprite
 {
 public:
 
-	static Player* create(std::string name, bool isHero);
+	static Player* create(std::string name, int score, bool isHero);
 
-    virtual bool init(std::string name, bool isHero);
+    virtual bool init(std::string name, int score, bool isHero);
 
 	void updateCards();
 	void clearCards();
 
+	// 地主信息
 	void setDiZhu();
+	bool getIsDiZhu() { return _isDiZhu; };
 
+	// 出牌
 	void FaPai(SceneGame* scene, PokeInfo info);
 	void ChuPai(SceneGame* scene, bool isFollow, CARD_TYPE cardType, unsigned int count, unsigned int value);
 	void BuChu();
 	void ChaiPai();
 
-	// 找相应的牌型
-	std::vector<int>& FindFollowCards(CARD_TYPE cardType, unsigned int count);
+	void ShowTipInfo(bool isFollow, CARD_TYPE cardType, unsigned int count, unsigned int value);
+
+	bool IsQiangDiZhu();
+
+	std::string GetName();
+	void SetPlayerID(size_t id);
+	size_t GetPlayerID();
+
+	int GetScore();
+	std::string GetScoreString();
+	void Score(int delta_score);
+
+	// 找跟牌的牌型
+	std::vector<int>& FindFollowCards(CARD_TYPE cardType, unsigned int count, unsigned int value);
+	// 找出牌的牌型
+	std::vector<int>& FindOutCards();
+
+	std::vector<PokeInfo>& GetOutCards();
 
 protected:
 
-	bool _isHero;
-	bool _isDiZhu;
+	size_t	_id;
+	bool	_isHero;
+	bool	_isDiZhu;
+
+	std::string	_name;
+	int			_score;
 
 	cocos2d::Sprite*_cardsManager;
-	cocos2d::Label*	_labelPlayerName;
+	cocos2d::Label*	_labelName;
+	cocos2d::Label*	_labelScore;
 	cocos2d::Label*	_labelPokeCount;
 
 	std::vector<PokeInfo>	_vecPokeInfo;
 
+	std::vector<int>		_vecFindFollowCards;
+
+	std::vector<PokeInfo>	_vecOutCards;	// 出牌存储区
+
 	PokeExhibitionZone* _exhibitionZone;
 
 	std::vector<CARDS_DATA>  _allCardGroups;
+
+	cocos2d::Label*			_labelTipInfo; // 提示信息
 
 	int m_intArray[15];          //记录每张牌出现的次数3----大鬼
 };

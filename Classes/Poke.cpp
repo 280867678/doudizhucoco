@@ -55,7 +55,7 @@ bool Poke::init(PokeInfo info, bool isSmall)
 		this->addChild(cardFront);
 		_size = cardFront->getContentSize();
 
-		if (_info._num == PokeNum::NUM_DW)
+		if (_info._num == PokeNum::NUM_XW)
 		{
 			auto cardNum = Sprite::createWithSpriteFrameName("b/smalltag_4.png");
 			cardNum->setPosition(-50,10);
@@ -65,7 +65,7 @@ bool Poke::init(PokeInfo info, bool isSmall)
 			cardTag->setPosition(20,-30);
 			this->addChild(cardTag);
 		} 
-		else if (_info._num == PokeNum::NUM_XW)
+		else if (_info._num == PokeNum::NUM_DW)
 		{
 			auto cardNum = Sprite::createWithSpriteFrameName("b/smalltag_5.png");
 			cardNum->setPosition(-50,10);
@@ -92,18 +92,29 @@ bool Poke::init(PokeInfo info, bool isSmall)
 				num = _info._num + 2;
 			}
 
-			std::stringstream strNum;
-			strNum << "b/black_" << num << ".png";
-			auto cardNum = Sprite::createWithSpriteFrameName(strNum.str());
-			cardNum->setPosition(-50,70);
-			this->addChild(cardNum);
-
 			std::stringstream strTag;
 			strTag << "b/bigtag_" << _info._tag << ".png";
 			auto cardSmallTag = Sprite::createWithSpriteFrameName(strTag.str());
 			cardSmallTag->setScale(0.5);
 			cardSmallTag->setPosition(-50,20);
 			this->addChild(cardSmallTag);
+
+			if (_info._tag == HEITAO || _info._tag == MEIHUA)
+			{
+				std::stringstream strNum;
+				strNum << "b/black_" << num << ".png";
+				auto cardNum = Sprite::createWithSpriteFrameName(strNum.str());
+				cardNum->setPosition(-50,70);
+				this->addChild(cardNum);
+			}
+			else
+			{
+				std::stringstream strNum;
+				strNum << "b/red_" << num << ".png";
+				auto cardNum = Sprite::createWithSpriteFrameName(strNum.str());
+				cardNum->setPosition(-50,70);
+				this->addChild(cardNum);
+			}
 
 			auto cardTag = Sprite::createWithSpriteFrameName(strTag.str());
 			cardTag->setPosition(20,-30);
@@ -190,4 +201,16 @@ void Poke::unSelect()
 		arr->removeObject(this);
 	}
 	_isSelected = false;
+}
+
+void Poke::Select()
+{
+	CCArray* arr = _gameMain->getArrPlayerOut();
+
+	if (!_isSelected)
+	{
+		setPosition(_position.x,_position.y +20);
+		arr->addObject(this);
+	}
+	_isSelected = true;
 }

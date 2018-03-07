@@ -37,19 +37,7 @@ struct PokeInfo
 
 	inline bool operator==(const PokeInfo &pi) const
 	{
-// 		if (_num>=13)
-// 		{
-// 			if (this->_num==pi._num)
-// 				return true;
-// 		}else
-// 		{
-// 			if (this->_num==pi._num &&
-// 				this->_tag==pi._tag)
-// 				return true;
-// 		}
-// 
-// 		return false;
-		return this->_num==pi._num;
+		return (this->_num==pi._num && this->_tag==pi._tag);
 	}
 };
 
@@ -69,6 +57,7 @@ public:
 	void click();
 	// 取消选中
 	void unSelect();
+	void Select();
 
 	PokeInfo getInfo() { return _info; };
 

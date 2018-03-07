@@ -1,5 +1,6 @@
 #include "AppCommon.h"
 #include "Poke.h"
+#include "cocos2d/external/win32-specific/icon/include/iconv.h"
 
 USING_NS_CC;
 
@@ -96,4 +97,82 @@ bool IsLessTwo(std::vector<int>& vecPoke)
 	}
 
 	return !ret;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//截屏函数
+//////////////////////////////////////////////////////////////////////////
+cocos2d::RenderTexture* ScreenShot(const bool bIsSave, std::function<void(cocos2d::RenderTexture*, const std::string&)> pFuncCallback)
+
+{
+	//使用屏幕尺寸初始化一个空的渲染纹理对象
+	Size sizeWin = Director::getInstance()->getWinSize();
+	cocos2d::RenderTexture* textureScreen =
+		cocos2d::RenderTexture::create(sizeWin.width, sizeWin.height);
+	//清除数据并开始获取
+	textureScreen->beginWithClear(0.0f, 0.0f, 0.0f, 0.0f);
+	//遍历场景节点对象，填充纹理到texure中
+	cocos2d::Director::getInstance()->getRunningScene()->visit();
+	//结束获取
+	textureScreen->end();
+	//保存为PNG图
+	if (bIsSave)
+	{
+		static int s_iSerialNumber = 0;
+		textureScreen->saveToFile(
+			cocos2d::CCString::createWithFormat("ScreenShot_%04d.png", ++s_iSerialNumber)->getCString(),
+			cocos2d::Image::Format::PNG,
+			true,
+			pFuncCallback);
+	}
+	else
+	{
+		if (nullptr != pFuncCallback)
+		{
+			pFuncCallback(textureScreen, "");
+		}
+	}
+	return textureScreen;
+}
+
+int code_convert(const char *from_charset, const char *to_charset, const char *inbuf, size_t inlen, char *outbuf, size_t outlen)
+{
+	iconv_t cd;
+	const char *temp = inbuf;
+	const char **pin = &temp;
+	char **pout = &outbuf;
+	memset(outbuf,0,outlen);
+	cd = iconv_open(to_charset,from_charset);
+	if(cd==0) return -1;
+	if(iconv(cd,pin,&inlen,pout,&outlen)==-1) return -1;
+	iconv_close(cd);
+	return 0;
+}
+
+/*UTF8转为GB2312*/
+std::string u2a(const char *inbuf)
+{
+	size_t inlen = strlen(inbuf);
+	char * outbuf = new char[inlen * 2 + 2];
+	std::string strRet;
+	if(code_convert("utf-8", "gb2312", inbuf, inlen, outbuf, inlen * 2 + 2) == 0)
+	{
+		strRet = outbuf;
+	}
+	delete [] outbuf;
+	return strRet;
+}
+
+/*GB2312转为UTF8*/
+std::string a2u(const char *inbuf)
+{
+	size_t inlen = strlen(inbuf);
+	char * outbuf = new char[inlen * 2 + 2];
+	std::string strRet;
+	if(code_convert("gb2312", "utf-8", inbuf, inlen, outbuf, inlen * 2 + 2) == 0)
+	{
+		strRet = outbuf;
+	}
+	delete [] outbuf;
+	return strRet;
 }

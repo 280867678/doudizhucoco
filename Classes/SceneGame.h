@@ -32,21 +32,24 @@ public:
 
 	// 发牌
 	void faPai();
+	void callbackFaPai(cocos2d::Node* node);
+	void FaDiPai(Player* player);
 
-	void gameover();
-	void jiesuan();
+	void gameover(int winID);
+	void jiesuan(int winID);
+	void setChuPaiMenuEnabled(bool isChuPai, bool isBuChu);
 
 	void initCards();
 
-	// 获取权值
-	unsigned int GetCardLogicValue(cocos2d::CCArray* cards);
-	// true next大
-	bool CompareCard(cocos2d::CCArray* firstCard, cocos2d::CCArray* nextCard);
-	CARD_TYPE PanDuanPaiXing(cocos2d::CCArray* cards);//判断牌型
-	CARD_TYPE PanDuanPaiXing(std::vector<int>& cards);//判断牌型
+	CARDS_DATA PanDuanPaiXing(cocos2d::CCArray* cards);//判断牌型
+	CARDS_DATA PanDuanPaiXing(std::vector<PokeInfo>& cards);//判断牌型
+	CARDS_DATA PanDuanPaiXing(std::vector<int>& cards);//判断牌型
 	cocos2d::CCArray* getArrPlayerOut() { return _arrPlayerOut; }
 
-	void saveOutCards(std::vector<PokeInfo>& vec);
+	//屏幕截图
+	void capture(Ref* sender);
+	//截图后执行afterCapture
+	void afterCapture(bool succeed, const std::string& outputFile);
     
     CREATE_FUNC(SceneGame);
 
@@ -62,17 +65,15 @@ protected:
 
 	cocos2d::Menu*	_menuChuPai;
 	cocos2d::Menu*	_menuQiangDiZhu;
-	cocos2d::Menu*	_menuRestart;
 	cocos2d::Menu*	_menuReady;
 
 	int		_state;	// 当前状态，1出牌，2等待
 	bool	_gameover;
+	bool	_begin;
 
 	std::vector<PokeInfo> _pokeInfo;
 
 	cocos2d::CCArray*	_arrPlayerOut;	// 玩家选中的牌数
-
-	std::vector<int>	_vecOutCards;	// 出牌存储区
 };
 
 #endif // __SCENE_GAME_H__
