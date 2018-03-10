@@ -1,6 +1,7 @@
 #include "SceneMenu.h"
 #include "SceneGame.h"
 #include"SimpleAudioEngine.h"   //包含声音引擎头文件  
+#include "AppMacros.h"
 
 USING_NS_CC;  
 using namespace CocosDenshion;//使用该声音引擎的命名空间  
@@ -41,9 +42,9 @@ bool SceneMenu::init()
 	// 创建菜单---------------------------------------------
 
 	auto itemBegin = customMenuItem("item_begin.png", "item_begin.png", CC_CALLBACK_1(SceneMenu::menuBeginCallback, this));
-	itemBegin->setPosition(Vec2(-200,-200));
+	itemBegin->setPosition(Vec2(-200/SCALE_FACTOR,-200/SCALE_FACTOR));
 	auto itemExit = customMenuItem("item_exit.png", "item_exit.png", CC_CALLBACK_1(SceneMenu::menuExitCallback, this));
-	itemExit->setPosition(Vec2(200,-200));
+	itemExit->setPosition(Vec2(200/SCALE_FACTOR,-200/SCALE_FACTOR));
 
     auto menu = Menu::create(itemBegin, itemExit, NULL);
     this->addChild(menu, 1);

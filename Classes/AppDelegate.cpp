@@ -44,7 +44,7 @@ bool AppDelegate::applicationDidFinishLaunching()
 		glview->setDesignResolutionSize(1200,675, ResolutionPolicy::NO_BORDER);
     }
 
-	//director->setContentScaleFactor(SCALE_FACTOR);
+	director->setContentScaleFactor(SCALE_FACTOR);
 
     // ÉèÖÃÖ¡Êý
     director->setDisplayStats(true);

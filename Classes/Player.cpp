@@ -28,30 +28,30 @@ bool Player::init(std::string name, int score, bool isHero)
 
 	// 手牌管理
 	_cardsManager = Sprite::create();
-	_cardsManager->setPosition(0, -190);
+	_cardsManager->setPosition(0, -190/SCALE_FACTOR);
 	this->addChild(_cardsManager, 1);
 
 	// 玩家名称
-	_labelName = Label::createWithTTF(_name, "fonts/FZCuYuan-M03S.ttf", 18);
+	_labelName = Label::createWithTTF(_name, "fonts/FZCuYuan-M03S.ttf", 18/SCALE_FACTOR);
 	//_labelName->setColor(Color3B(255, 255, 0));
-	_labelName->setPosition(0,-70);
+	_labelName->setPosition(0,-70/SCALE_FACTOR);
 	this->addChild(_labelName,1);
 
 	auto huanledou = Sprite::create("icon_dou.png");
 	huanledou->setScale(0.5);
-	huanledou->setPosition(100-35,-70);
+	huanledou->setPosition(100/SCALE_FACTOR-35/SCALE_FACTOR,-70/SCALE_FACTOR);
 	this->addChild(huanledou, 0);
 
 	// 玩家分数
-	_labelScore = Label::createWithTTF(this->GetScoreString().c_str(), "fonts/FZCuYuan-M03S.ttf", 18);
+	_labelScore = Label::createWithTTF(this->GetScoreString().c_str(), "fonts/FZCuYuan-M03S.ttf", 18/SCALE_FACTOR);
 	//_labelScore->setColor(Color3B(255, 255, 0));
-	_labelScore->setPosition(100,-70);
+	_labelScore->setPosition(100/SCALE_FACTOR,-70/SCALE_FACTOR);
 	this->addChild(_labelScore,1);
 
 	// 提示信息
-	_labelTipInfo = Label::createWithTTF(FileUtils::getInstance()->getValueMapFromFile("strings.xml").at("tipinfo").asString(), "fonts/FZCuYuan-M03S.ttf", 24);
+	_labelTipInfo = Label::createWithTTF(FileUtils::getInstance()->getValueMapFromFile("strings.xml").at("tipinfo").asString(), "fonts/FZCuYuan-M03S.ttf", 24/SCALE_FACTOR);
 	_labelTipInfo->setColor(Color3B(255, 255, 0));
-	_labelTipInfo->setPosition(550,50);
+	_labelTipInfo->setPosition(550/SCALE_FACTOR,50/SCALE_FACTOR);
 	this->addChild(_labelTipInfo,1);
 	_labelTipInfo->setVisible(false);
 
@@ -68,19 +68,19 @@ bool Player::init(std::string name, int score, bool isHero)
 	// 玩家牌数
 	auto back = Sprite::createWithSpriteFrameName("b/poker_back.png");
 	back->setScale(0.3);
-	back->setPosition(100,0);
+	back->setPosition(100/SCALE_FACTOR,0);
 	this->addChild(back,1);
 
-	_labelPokeCount = Label::createWithTTF("0", "fonts/FZCuYuan-M03S.ttf", 130);
-	_labelPokeCount->setPosition(70,110);
+	_labelPokeCount = Label::createWithTTF("0", "fonts/FZCuYuan-M03S.ttf", 130/SCALE_FACTOR);
+	_labelPokeCount->setPosition(70/SCALE_FACTOR,110/SCALE_FACTOR);
 	back->addChild(_labelPokeCount,1);
 
 	// 出牌区
 	_exhibitionZone = PokeExhibitionZone::create();
 	if (isHero)
-		_exhibitionZone->setPosition(500, 130);
+		_exhibitionZone->setPosition(500/SCALE_FACTOR, 130/SCALE_FACTOR);
 	else
-		_exhibitionZone->setPosition(0, -150);
+		_exhibitionZone->setPosition(0/SCALE_FACTOR, -150/SCALE_FACTOR);
 	this->addChild(_exhibitionZone, 1);
 
     return true;
@@ -133,7 +133,7 @@ void Player::setDiZhu()
 	if (_isDiZhu)
 	{
 		auto lord = Sprite::create("flag_lord.png");
-		lord->setPosition(160, 0);
+		lord->setPosition(160/SCALE_FACTOR, 0/SCALE_FACTOR);
 		this->addChild(lord, 0);
 	}
 }
@@ -200,8 +200,8 @@ void Player::ShowTipInfo(bool isFollow, CARD_TYPE cardType, unsigned int count, 
 	// end------------------------------------------------------------------------------------------
 }
 
-int s_index_sound_buyao = 1;
-int s_index_sound_dani = 1;
+int s_index_sound_buyao = 0;
+int s_index_sound_dani = 0;
 
 void Player::ChuPai(SceneGame* scene, bool isFollow, CARD_TYPE cardType, unsigned int count, unsigned int value)
 {
@@ -236,7 +236,7 @@ void Player::ChuPai(SceneGame* scene, bool isFollow, CARD_TYPE cardType, unsigne
 	}
 	else
 	{
-		std::vector<int>& vec = isFollow ? FindFollowCards(cardType, count, value) : FindOutCards();
+		std::vector<int> vec = isFollow ? FindFollowCards(cardType, count, value) : FindOutCards();
 		if (vec.empty())
 		{
 			_exhibitionZone->chuPai(_vecOutCards);
@@ -281,12 +281,34 @@ void Player::ChuPai(SceneGame* scene, bool isFollow, CARD_TYPE cardType, unsigne
 	}
 	
 	CARDS_DATA vecOutCardsData = PanDuanPaiXing(_vecOutCards);
-	if (isFollow && (vecOutCardsData._type != BOMB_CARD || vecOutCardsData._type != MISSILE_CARD))
+	if (isFollow)
 	{
-		char str_music[255] = {0};
-		sprintf(str_music, "sound/Man/dani%d.ogg", s_index_sound_dani%4 + 1);
-		SimpleAudioEngine::getInstance()->playEffect(str_music);
-		s_index_sound_dani++;
+		if (vecOutCardsData._cards.empty())
+		{
+			char str_music[255] = {0};
+			sprintf(str_music, "sound/Man/buyao%d.ogg", s_index_sound_buyao%4 + 1);
+			SimpleAudioEngine::getInstance()->playEffect(str_music);
+			s_index_sound_buyao++;
+		}
+		else
+		{
+			if (vecOutCardsData._type == BOMB_CARD || vecOutCardsData._type == MISSILE_CARD)
+			{
+				std::vector<int> vec;
+				for (int i=0; i<_vecOutCards.size(); i++)
+				{
+					vec.push_back(_vecOutCards[i]._num);
+				}
+				PlayEffectForCards(vec);
+			}
+			else
+			{
+				char str_music[255] = {0};
+				sprintf(str_music, "sound/Man/dani%d.ogg", s_index_sound_dani%3 + 1);
+				SimpleAudioEngine::getInstance()->playEffect(str_music);
+				s_index_sound_dani++;
+			}
+		}
 	}
 	else
 	{
@@ -370,10 +392,7 @@ void Player::PlayEffectForCards(std::vector<int>& vec)
 		break;
 	default:
 		{
-			char str_music[255] = {0};
-			sprintf(str_music, "sound/Man/buyao%d.ogg", s_index_sound_buyao%4 + 1);
-			SimpleAudioEngine::getInstance()->playEffect(str_music);
-			s_index_sound_dani++;
+
 		}
 		break;
 	}
@@ -564,8 +583,8 @@ std::vector<int>& Player::FindFollowCards(CARD_TYPE cardType, unsigned int count
 			return _allCardGroups[i]._cards;
 	}
 
-	std::vector<int> tmp;
-	return tmp;
+	//std::vector<int> tmp;
+	return _vecFindFollowCards;
 }
 
 std::vector<PokeInfo>& Player::GetOutCards()
@@ -588,7 +607,7 @@ void Player::updateCards()
 		Poke* card = dynamic_cast<Poke*>(_cardsManager->getChildren().at(i));
 		if (card != NULL)
 		{
-			card->setPosition(550+(i-zeroPoint)*50, card->getPosition().y);
+			card->setPosition(550/SCALE_FACTOR+(i-zeroPoint)*50/SCALE_FACTOR, card->getPosition().y);
 		}
 	}
 }
@@ -801,7 +820,7 @@ void Player::ChaiPai()
 	{
 		for (int j=2; j<card_ii.size(); j++)
 		{
-			if (i+j<card_ii.size() && card_ii[i+j]-card_ii[i]==j && card_i[i+j] <= NUM_A/*单顺不能打过A*/)
+			if (i+j<card_ii.size() && card_ii[i+j]-card_ii[i]==j && card_ii[i+j] <= NUM_A/*单顺不能打过A*/)
 			{
 				CARDS_DATA temp;
 				temp._type = COMPANY_CARD;

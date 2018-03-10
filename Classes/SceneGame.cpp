@@ -1,8 +1,8 @@
 #include "SceneGame.h"
 #include "Player.h"
 #include "SceneMenu.h"
-#include "SpriteBlur.h"
 #include "SimpleAudioEngine.h"   //包含声音引擎头文件  
+#include "AppMacros.h"
 
 USING_NS_CC;  
 using namespace CocosDenshion;//使用该声音引擎的命名空间
@@ -68,17 +68,17 @@ bool SceneGame::init()
 	this->addChild(bg, 0);
 
 	auto flag = Sprite::create("d_flag.png");
-	flag->setPosition(Vec2(visibleSize.width/2 + origin.x, visibleSize.height/2 + origin.y + 100));
+	flag->setPosition(Vec2(visibleSize.width/2 + origin.x, visibleSize.height/2 + origin.y + 100/SCALE_FACTOR));
 	this->addChild(flag, 0);
 
 	// 返回菜单
 
 	auto itemBack = customMenuItem("item_back.png", "item_back.png", CC_CALLBACK_1(SceneGame::menuBackCallback, this));
-	itemBack->setPosition(visibleSize.width/2+200, visibleSize.height-50);
+	itemBack->setPosition(visibleSize.width/2+200/SCALE_FACTOR, visibleSize.height-50/SCALE_FACTOR);
 
-	auto menuBack = Menu::create(itemBack, NULL);
-	menuBack->setPosition(origin);
-	this->addChild(menuBack, 1);
+	_menuBack = Menu::create(itemBack, NULL);
+	_menuBack->setPosition(origin);
+	this->addChild(_menuBack, 1);
 	
 	// 准备菜单
 
@@ -89,9 +89,9 @@ bool SceneGame::init()
 	// 抢地主菜单
 
 	auto itemQiang = customMenuItem("item_qiangdizhu.png", "item_qiangdizhu.png", CC_CALLBACK_1(SceneGame::menuQiangCallback, this));
-	itemQiang->setPosition(-80, -50);
+	itemQiang->setPosition(-80/SCALE_FACTOR, -50/SCALE_FACTOR);
 	auto itemBuQiang = customMenuItem("item_buqiang.png", "item_buqiang.png", CC_CALLBACK_1(SceneGame::menuBuQiangCallback, this));
-	itemBuQiang->setPosition(80, -50);
+	itemBuQiang->setPosition(80/SCALE_FACTOR, -50/SCALE_FACTOR);
 
 	_menuQiangDiZhu = Menu::create(itemBuQiang, itemQiang, NULL);
 	this->addChild(_menuQiangDiZhu, 1);
@@ -100,11 +100,11 @@ bool SceneGame::init()
     // 出牌菜单
 
 	auto itemBuChu = customMenuItem("item_buchu.png", "item_buchu_d.png", CC_CALLBACK_1(SceneGame::menuBuChuCallback, this));
-	itemBuChu->setPosition(100-50, -50);
+	itemBuChu->setPosition(100/SCALE_FACTOR-50/SCALE_FACTOR, -50/SCALE_FACTOR);
     auto itemChuPai = customMenuItem("item_chupai.png", "item_chupai_d.png", CC_CALLBACK_1(SceneGame::menuChuPaiCallback, this));
-	itemChuPai->setPosition(300-50, -50);
+	itemChuPai->setPosition(300/SCALE_FACTOR-50/SCALE_FACTOR, -50/SCALE_FACTOR);
 	auto itemTiShi = customMenuItem("item_tishi.png", "item_tishi_d.png", CC_CALLBACK_1(SceneGame::menuTiShiCallback, this));
-	itemTiShi->setPosition(-100-50, -50);
+	itemTiShi->setPosition(-100/SCALE_FACTOR-50/SCALE_FACTOR, -50/SCALE_FACTOR);
 
 	_menuChuPai = Menu::create();
 	_menuChuPai->addChild(itemBuChu,2,0);
@@ -147,23 +147,23 @@ bool SceneGame::init()
 	// 玩家
 
 	_player1 = Player::create(s_runtimeData._playerinfo1._name, s_runtimeData._playerinfo1._score, true);
-	_player1->setPosition(70, 300);
+	_player1->setPosition(70/SCALE_FACTOR, 300/SCALE_FACTOR);
 	_player1->SetPlayerID(1);
 	this->addChild(_player1);
 
 	_player2 = Player::create(s_runtimeData._playerinfo2._name, s_runtimeData._playerinfo2._score, false);
-	_player2->setPosition(1000, 600);
+	_player2->setPosition(1000/SCALE_FACTOR, 600/SCALE_FACTOR);
 	_player2->SetPlayerID(2);
 	this->addChild(_player2);
 
 	_player3 = Player::create(s_runtimeData._playerinfo3._name, s_runtimeData._playerinfo3._score, false);
-	_player3->setPosition(70, 600);
+	_player3->setPosition(70/SCALE_FACTOR, 600/SCALE_FACTOR);
 	_player3->SetPlayerID(3);
 	this->addChild(_player3);
 
 	// 底牌区
 	_bottomCardZone = BottomCardZone::create();
-	_bottomCardZone->setPosition(600, 610);
+	_bottomCardZone->setPosition(600/SCALE_FACTOR, 610/SCALE_FACTOR);
 	this->addChild(_bottomCardZone, 1);
 
 	// 初始化牌堆
@@ -705,159 +705,134 @@ void SceneGame::jiesuan(int winID)
 	s_runtimeData._playerinfo3._score = _player3->GetScore();
 
 	// 结算界面
-	capture(this);
-
-// 	// 结算页面
-// 	
-// 	Size visibleSize = Director::getInstance()->getVisibleSize();
-// 	Vec2 origin = Director::getInstance()->getVisibleOrigin();
-// 
-// 	auto jiesuanBg = Sprite::create("gameover/bg_small.png");
-// 	jiesuanBg->setPosition(Vec2(visibleSize.width / 2 + origin.x, visibleSize.height / 2 + origin.y));
-// 	this->addChild(jiesuanBg, 100);
-// 
-// 	auto tiaofu = Sprite::create("gameover/gameresult_win_tiaofu.png");
-// 	tiaofu->setPosition(Vec2(350, 400));
-// 	jiesuanBg->addChild(tiaofu, 0);
-// 
-// 	auto shengli = Sprite::createWithSpriteFrameName("ddz_result_base_word_win.png");
-// 	shengli->setPosition(Vec2(350, 400));
-// 	jiesuanBg->addChild(shengli, 0);
-// 
-// 	auto player = Sprite::create("owner1_lose.png");
-// 	player->setPosition(Vec2(100, 200));
-// 	jiesuanBg->addChild(player, 0);
+	auto delay = DelayTime::create(1);
+	auto callback = CallFuncN::create(CC_CALLBACK_1(SceneGame::callbackJieSuan,this));
+	auto seq = Sequence::createWithTwoActions(delay, callback);
+	this->runAction(seq);
 }
 
-//
-//屏幕截图
-void SceneGame::capture(Ref* sender)
+void SceneGame::callbackJieSuan(cocos2d::Node* node)
 {
-	CCLOG("ScreenShot");
-	utils::captureScreen(CC_CALLBACK_2(SceneGame::afterCapture, this), "ScreenShot.png");
-}
+	// 禁用所有菜单
+	_menuBack->setEnabled(false);
+	_menuChuPai->setEnabled(false);
+	_menuQiangDiZhu->setEnabled(false);
+	_menuReady->setEnabled(false);
 
-//截图后执行afterCapture
-void SceneGame::afterCapture(bool succeed, const std::string& outputFile)
-{
-	if (succeed)
-	{
-		CCLOG("%s", outputFile.c_str());
-		Size visibleSize = Director::getInstance()->getVisibleSize();
-		Vec2 origin = Director::getInstance()->getVisibleOrigin();
+	//------------------------------------------------------------
 
-		//显示截图
-		Sprite* sp = Sprite::create(outputFile);
-		SpriteBlur* spriteBlur = SpriteBlur::create(sp, 20.0f, 20.0f);		
-		spriteBlur->setPosition(visibleSize / 2);
-		this->addChild(spriteBlur,1000);
+	Size visibleSize = Director::getInstance()->getVisibleSize();
+	Vec2 origin = Director::getInstance()->getVisibleOrigin();
 
-		// 结算页面
+	SimpleAudioEngine::getInstance()->playEffect(isPlayerWin ? "sound/MusicEx_Win.ogg" : "sound/MusicEx_Lose.ogg");
 
-		auto jiesuanBg = Sprite::create("gameover/bg_small.png");
-		jiesuanBg->setPosition(Vec2(visibleSize.width * 2 / 3 + origin.x, visibleSize.height / 2 + origin.y));
-		this->addChild(jiesuanBg, 1001);
+	// 背景----------------------------------------------
+	auto bg = Sprite::create(isPlayerWin ? "gameover/ddz_diploma_win_big_bg.jpg" : "gameover/ddz_diploma_lose_big_bg.jpg");
+	bg->setScale(1.4);
+	bg->setPosition(Vec2(visibleSize.width / 2 + origin.x, visibleSize.height / 2 + origin.y));
+	this->addChild(bg, 1000);
 
-		auto tiaofu = Sprite::create(isPlayerWin ? "gameover/gameresult_win_tiaofu.png" : "gameover/gameresult_lose_tiaofu.png");
-		tiaofu->setPosition(Vec2(350, 400));
-		jiesuanBg->addChild(tiaofu, 0);
+	// 结算页面
 
-		auto shengli = Sprite::createWithSpriteFrameName(isPlayerWin ? "ddz_result_base_word_win.png" : "ddz_result_base_word_lose.png");
-		shengli->setPosition(Vec2(350, 430));
-		jiesuanBg->addChild(shengli, 0);
+	auto jiesuanBg = Sprite::create("gameover/bg_small.png");
+	jiesuanBg->setPosition(Vec2(visibleSize.width * 2 / 3 + origin.x, visibleSize.height / 2 + origin.y));
+	this->addChild(jiesuanBg, 1001);
 
-		auto player = Sprite::create(
-			isPlayerWin ? 
-			(_player1->getIsDiZhu() ? "gameover/owner1_win.png" : "gameover/farmer1_win.png") 
-			: 
-			(_player1->getIsDiZhu() ? "gameover/owner1_lose.png" : "gameover/farmer1_lose.png"));
-		player->setPosition(Vec2(-200, 200));
-		jiesuanBg->addChild(player, 0);
+	auto tiaofu = Sprite::create(isPlayerWin ? "gameover/gameresult_win_tiaofu.png" : "gameover/gameresult_lose_tiaofu.png");
+	tiaofu->setPosition(Vec2(350/SCALE_FACTOR, 400/SCALE_FACTOR));
+	jiesuanBg->addChild(tiaofu, 0);
 
-		// 结算数据
+	auto shengli = Sprite::createWithSpriteFrameName(isPlayerWin ? "ddz_result_base_word_win.png" : "ddz_result_base_word_lose.png");
+	shengli->setPosition(Vec2(350/SCALE_FACTOR, 430/SCALE_FACTOR));
+	jiesuanBg->addChild(shengli, 0);
 
-		// 昵称
+	auto player = Sprite::create(
+		isPlayerWin ? 
+		(_player1->getIsDiZhu() ? "gameover/owner1_win.png" : "gameover/farmer1_win.png") 
+		: 
+		(_player1->getIsDiZhu() ? "gameover/owner1_lose.png" : "gameover/farmer1_lose.png"));
+	player->setPosition(Vec2(-200/SCALE_FACTOR, 200/SCALE_FACTOR));
+	jiesuanBg->addChild(player, 0);
 
-		auto label_name = Label::createWithTTF(FileUtils::getInstance()->getValueMapFromFile("strings.xml").at("name").asString(), "fonts/FZCuYuan-M03S.ttf", 24);
-		label_name->setColor(Color3B(255, 0, 0));
-		label_name->setPosition(Vec2(150,300));
-		jiesuanBg->addChild(label_name,1);
+	// 结算数据
 
-		// 地主标志
-		auto dizhu_flag = Sprite::createWithSpriteFrameName("ddz_result_base_dizhu_flag.png");
-		dizhu_flag->setPosition(Vec2(90, _player1->getIsDiZhu() ? 250 : (_player2->getIsDiZhu() ? 200 : (_player3->getIsDiZhu() ? 150 : 0))));
-		jiesuanBg->addChild(dizhu_flag, 0);
+	// 昵称
 
-		auto label_name_player1 = Label::createWithTTF(_player1->GetName().c_str(), "fonts/FZCuYuan-M03S.ttf", 24);
-		label_name_player1->setColor(Color3B(255, 0, 0));
-		label_name_player1->setPosition(Vec2(150,250));
-		jiesuanBg->addChild(label_name_player1,1);
+	auto label_name = Label::createWithTTF(FileUtils::getInstance()->getValueMapFromFile("strings.xml").at("name").asString(), "fonts/FZCuYuan-M03S.ttf", 24/SCALE_FACTOR);
+	label_name->setColor(Color3B(255, 0, 0));
+	label_name->setPosition(Vec2(150/SCALE_FACTOR,300/SCALE_FACTOR));
+	jiesuanBg->addChild(label_name,1);
 
-		auto label_name_player2 = Label::createWithTTF(_player2->GetName().c_str(), "fonts/FZCuYuan-M03S.ttf", 24);
-		label_name_player2->setColor(Color3B(255, 0, 0));
-		label_name_player2->setPosition(Vec2(150,200));
-		jiesuanBg->addChild(label_name_player2,1);
+	// 地主标志
+	auto dizhu_flag = Sprite::createWithSpriteFrameName("ddz_result_base_dizhu_flag.png");
+	dizhu_flag->setPosition(Vec2(90/SCALE_FACTOR, _player1->getIsDiZhu() ? 250/SCALE_FACTOR : (_player2->getIsDiZhu() ? 200/SCALE_FACTOR : (_player3->getIsDiZhu() ? 150/SCALE_FACTOR : 0))));
+	jiesuanBg->addChild(dizhu_flag, 0);
 
-		auto label_name_player3 = Label::createWithTTF(_player3->GetName().c_str(), "fonts/FZCuYuan-M03S.ttf", 24);
-		label_name_player3->setColor(Color3B(255, 0, 0));
-		label_name_player3->setPosition(Vec2(150,150));
-		jiesuanBg->addChild(label_name_player3,1);
+	auto label_name_player1 = Label::createWithTTF(_player1->GetName().c_str(), "fonts/FZCuYuan-M03S.ttf", 24/SCALE_FACTOR);
+	label_name_player1->setColor(Color3B(255, 0, 0));
+	label_name_player1->setPosition(Vec2(150/SCALE_FACTOR,250/SCALE_FACTOR));
+	jiesuanBg->addChild(label_name_player1,1);
 
-		// 欢乐豆
+	auto label_name_player2 = Label::createWithTTF(_player2->GetName().c_str(), "fonts/FZCuYuan-M03S.ttf", 24/SCALE_FACTOR);
+	label_name_player2->setColor(Color3B(255, 0, 0));
+	label_name_player2->setPosition(Vec2(150/SCALE_FACTOR,200/SCALE_FACTOR));
+	jiesuanBg->addChild(label_name_player2,1);
 
-		auto label_huanledou = Label::createWithTTF(FileUtils::getInstance()->getValueMapFromFile("strings.xml").at("score").asString(), "fonts/FZCuYuan-M03S.ttf", 24);
-		label_huanledou->setColor(Color3B(255, 0, 0));
-		label_huanledou->setPosition(Vec2(350,300));
-		jiesuanBg->addChild(label_huanledou,1);
+	auto label_name_player3 = Label::createWithTTF(_player3->GetName().c_str(), "fonts/FZCuYuan-M03S.ttf", 24/SCALE_FACTOR);
+	label_name_player3->setColor(Color3B(255, 0, 0));
+	label_name_player3->setPosition(Vec2(150/SCALE_FACTOR,150/SCALE_FACTOR));
+	jiesuanBg->addChild(label_name_player3,1);
 
-		auto label_huanledou_player1 = Label::createWithTTF(_player1->GetScoreString().c_str(), "fonts/FZCuYuan-M03S.ttf", 24);
-		label_huanledou_player1->setColor(Color3B(255, 0, 0));
-		label_huanledou_player1->setPosition(Vec2(350,250));
-		jiesuanBg->addChild(label_huanledou_player1,1);
+	// 欢乐豆
 
-		auto label_huanledou_player2 = Label::createWithTTF(_player2->GetScoreString().c_str(), "fonts/FZCuYuan-M03S.ttf", 24);
-		label_huanledou_player2->setColor(Color3B(255, 0, 0));
-		label_huanledou_player2->setPosition(Vec2(350,200));
-		jiesuanBg->addChild(label_huanledou_player2,1);
+	auto label_huanledou = Label::createWithTTF(FileUtils::getInstance()->getValueMapFromFile("strings.xml").at("score").asString(), "fonts/FZCuYuan-M03S.ttf", 24/SCALE_FACTOR);
+	label_huanledou->setColor(Color3B(255, 0, 0));
+	label_huanledou->setPosition(Vec2(350/SCALE_FACTOR,300/SCALE_FACTOR));
+	jiesuanBg->addChild(label_huanledou,1);
 
-		auto label_huanledou_player3 = Label::createWithTTF(_player3->GetScoreString().c_str(), "fonts/FZCuYuan-M03S.ttf", 24);
-		label_huanledou_player3->setColor(Color3B(255, 0, 0));
-		label_huanledou_player3->setPosition(Vec2(350,150));
-		jiesuanBg->addChild(label_huanledou_player3,1);
+	auto label_huanledou_player1 = Label::createWithTTF(_player1->GetScoreString().c_str(), "fonts/FZCuYuan-M03S.ttf", 24/SCALE_FACTOR);
+	label_huanledou_player1->setColor(Color3B(255, 0, 0));
+	label_huanledou_player1->setPosition(Vec2(350/SCALE_FACTOR,250/SCALE_FACTOR));
+	jiesuanBg->addChild(label_huanledou_player1,1);
 
-		// 分数加减
-		char str_score_delta_player1[255] = {0};
-		char str_score_delta_player2[255] = {0};
-		char str_score_delta_player3[255] = {0};
-		
-		sprintf(str_score_delta_player1, "%+d", player1_delta_score);
-		sprintf(str_score_delta_player2, "%+d", player2_delta_score);
-		sprintf(str_score_delta_player3, "%+d", player3_delta_score);
+	auto label_huanledou_player2 = Label::createWithTTF(_player2->GetScoreString().c_str(), "fonts/FZCuYuan-M03S.ttf", 24/SCALE_FACTOR);
+	label_huanledou_player2->setColor(Color3B(255, 0, 0));
+	label_huanledou_player2->setPosition(Vec2(350/SCALE_FACTOR,200/SCALE_FACTOR));
+	jiesuanBg->addChild(label_huanledou_player2,1);
 
-		auto label_huanledou_d_player1 = Label::createWithTTF(str_score_delta_player1, "fonts/FZCuYuan-M03S.ttf", 24);
-		label_huanledou_d_player1->setColor(Color3B(255, 0, 0));
-		label_huanledou_d_player1->setPosition(Vec2(480,250));
-		jiesuanBg->addChild(label_huanledou_d_player1,1);
+	auto label_huanledou_player3 = Label::createWithTTF(_player3->GetScoreString().c_str(), "fonts/FZCuYuan-M03S.ttf", 24/SCALE_FACTOR);
+	label_huanledou_player3->setColor(Color3B(255, 0, 0));
+	label_huanledou_player3->setPosition(Vec2(350/SCALE_FACTOR,150/SCALE_FACTOR));
+	jiesuanBg->addChild(label_huanledou_player3,1);
 
-		auto label_huanledou_d_player2 = Label::createWithTTF(str_score_delta_player2, "fonts/FZCuYuan-M03S.ttf", 24);
-		label_huanledou_d_player2->setColor(Color3B(255, 0, 0));
-		label_huanledou_d_player2->setPosition(Vec2(480,200));
-		jiesuanBg->addChild(label_huanledou_d_player2,1);
+	// 分数加减
+	char str_score_delta_player1[255] = {0};
+	char str_score_delta_player2[255] = {0};
+	char str_score_delta_player3[255] = {0};
 
-		auto label_huanledou_d_player3 = Label::createWithTTF(str_score_delta_player3, "fonts/FZCuYuan-M03S.ttf", 24);
-		label_huanledou_d_player3->setColor(Color3B(255, 0, 0));
-		label_huanledou_d_player3->setPosition(Vec2(480,150));
-		jiesuanBg->addChild(label_huanledou_d_player3,1);
+	sprintf(str_score_delta_player1, "%+d", player1_delta_score);
+	sprintf(str_score_delta_player2, "%+d", player2_delta_score);
+	sprintf(str_score_delta_player3, "%+d", player3_delta_score);
 
-		// 重开菜单
+	auto label_huanledou_d_player1 = Label::createWithTTF(str_score_delta_player1, "fonts/FZCuYuan-M03S.ttf", 24/SCALE_FACTOR);
+	label_huanledou_d_player1->setColor(Color3B(255, 0, 0));
+	label_huanledou_d_player1->setPosition(Vec2(480/SCALE_FACTOR,250/SCALE_FACTOR));
+	jiesuanBg->addChild(label_huanledou_d_player1,1);
 
-		auto itemRestart = customMenuItemWithSpriteFrameName("ddzsingle_maplvl_btn_restart.png", "ddzsingle_maplvl_btn_restart.png", CC_CALLBACK_1(SceneGame::menuRestartCallback, this));
-		itemRestart->setPosition(200, -150);
-		auto menuRestart = Menu::create(itemRestart, NULL);
-		this->addChild(menuRestart, 1002);
-	}
-	else
-	{
-		CCLOG("Capture screen failed.");
-	}
+	auto label_huanledou_d_player2 = Label::createWithTTF(str_score_delta_player2, "fonts/FZCuYuan-M03S.ttf", 24/SCALE_FACTOR);
+	label_huanledou_d_player2->setColor(Color3B(255, 0, 0));
+	label_huanledou_d_player2->setPosition(Vec2(480/SCALE_FACTOR,200/SCALE_FACTOR));
+	jiesuanBg->addChild(label_huanledou_d_player2,1);
+
+	auto label_huanledou_d_player3 = Label::createWithTTF(str_score_delta_player3, "fonts/FZCuYuan-M03S.ttf", 24/SCALE_FACTOR);
+	label_huanledou_d_player3->setColor(Color3B(255, 0, 0));
+	label_huanledou_d_player3->setPosition(Vec2(480/SCALE_FACTOR,150/SCALE_FACTOR));
+	jiesuanBg->addChild(label_huanledou_d_player3,1);
+
+	// 重开菜单
+
+	auto itemRestart = customMenuItemWithSpriteFrameName("ddzsingle_maplvl_btn_restart.png", "ddzsingle_maplvl_btn_restart.png", CC_CALLBACK_1(SceneGame::menuRestartCallback, this));
+	itemRestart->setPosition(200/SCALE_FACTOR, -150/SCALE_FACTOR);
+	auto menuRestart = Menu::create(itemRestart, NULL);
+	this->addChild(menuRestart, 1002);
 }

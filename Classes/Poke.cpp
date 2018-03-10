@@ -1,5 +1,6 @@
 #include "Poke.h"
 #include "SceneGame.h"
+#include "AppMacros.h"
 
 USING_NS_CC;
 
@@ -58,21 +59,21 @@ bool Poke::init(PokeInfo info, bool isSmall)
 		if (_info._num == PokeNum::NUM_XW)
 		{
 			auto cardNum = Sprite::createWithSpriteFrameName("b/smalltag_4.png");
-			cardNum->setPosition(-50,10);
+			cardNum->setPosition(-50/SCALE_FACTOR,10/SCALE_FACTOR);
 			this->addChild(cardNum);
 
 			auto cardTag = Sprite::createWithSpriteFrameName("b/bigtag_6.png");
-			cardTag->setPosition(20,-30);
+			cardTag->setPosition(20/SCALE_FACTOR,-30/SCALE_FACTOR);
 			this->addChild(cardTag);
 		} 
 		else if (_info._num == PokeNum::NUM_DW)
 		{
 			auto cardNum = Sprite::createWithSpriteFrameName("b/smalltag_5.png");
-			cardNum->setPosition(-50,10);
+			cardNum->setPosition(-50/SCALE_FACTOR,10/SCALE_FACTOR);
 			this->addChild(cardNum);
 
 			auto cardTag = Sprite::createWithSpriteFrameName("b/bigtag_6.png");
-			cardTag->setPosition(20,-30);
+			cardTag->setPosition(20/SCALE_FACTOR,-30/SCALE_FACTOR);
 			this->addChild(cardTag);
 		}
 		else 
@@ -96,7 +97,7 @@ bool Poke::init(PokeInfo info, bool isSmall)
 			strTag << "b/bigtag_" << _info._tag << ".png";
 			auto cardSmallTag = Sprite::createWithSpriteFrameName(strTag.str());
 			cardSmallTag->setScale(0.5);
-			cardSmallTag->setPosition(-50,20);
+			cardSmallTag->setPosition(-50/SCALE_FACTOR,20/SCALE_FACTOR);
 			this->addChild(cardSmallTag);
 
 			if (_info._tag == HEITAO || _info._tag == MEIHUA)
@@ -104,7 +105,7 @@ bool Poke::init(PokeInfo info, bool isSmall)
 				std::stringstream strNum;
 				strNum << "b/black_" << num << ".png";
 				auto cardNum = Sprite::createWithSpriteFrameName(strNum.str());
-				cardNum->setPosition(-50,70);
+				cardNum->setPosition(-50/SCALE_FACTOR,70/SCALE_FACTOR);
 				this->addChild(cardNum);
 			}
 			else
@@ -112,12 +113,12 @@ bool Poke::init(PokeInfo info, bool isSmall)
 				std::stringstream strNum;
 				strNum << "b/red_" << num << ".png";
 				auto cardNum = Sprite::createWithSpriteFrameName(strNum.str());
-				cardNum->setPosition(-50,70);
+				cardNum->setPosition(-50/SCALE_FACTOR,70/SCALE_FACTOR);
 				this->addChild(cardNum);
 			}
 
 			auto cardTag = Sprite::createWithSpriteFrameName(strTag.str());
-			cardTag->setPosition(20,-30);
+			cardTag->setPosition(20/SCALE_FACTOR,-30/SCALE_FACTOR);
 			this->addChild(cardTag);
 		}
 	}
@@ -180,12 +181,12 @@ void Poke::click()
 
 	if (_isSelected)
 	{
-		setPosition(_position.x,_position.y -20);
+		setPosition(_position.x,_position.y -20/SCALE_FACTOR);
 		arr->removeObject(this);
 	} 
 	else
 	{
-		setPosition(_position.x,_position.y +20);
+		setPosition(_position.x,_position.y +20/SCALE_FACTOR);
 		arr->addObject(this);
 	}
 	_isSelected = !_isSelected;
@@ -197,7 +198,7 @@ void Poke::unSelect()
 
 	if (_isSelected)
 	{
-		setPosition(_position.x,_position.y -20);
+		setPosition(_position.x,_position.y -20/SCALE_FACTOR);
 		arr->removeObject(this);
 	}
 	_isSelected = false;
@@ -209,7 +210,7 @@ void Poke::Select()
 
 	if (!_isSelected)
 	{
-		setPosition(_position.x,_position.y +20);
+		setPosition(_position.x,_position.y +20/SCALE_FACTOR);
 		arr->addObject(this);
 	}
 	_isSelected = true;

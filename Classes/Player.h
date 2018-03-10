@@ -4,6 +4,7 @@
 #include "cocos2d.h"
 #include "Poke.h"
 #include "SimpleAudioEngine.h"   //包含声音引擎头文件
+#include "AppMacros.h"
 
 USING_NS_CC;  
 using namespace CocosDenshion;//使用该声音引擎的命名空间  
@@ -27,23 +28,6 @@ enum  CARD_TYPE
 	AIRCRAFT_DOUBLE_CARD,	//飞机带对子
 	ERROR_CARD				//错误的牌型
 };
-
-// 牌型对应的权值
-// 为每一种牌型定义权值的大小：
-
-//	单张    1
-//
-//	对子    2
-//
-//	三带    3
-//
-//	连牌    4  (每多一张牌权值+1)
-//
-//	连对    5（每多一对牌，权值+2）
-//
-//	飞机	6（每对以飞机，权值在基础上+3）
-//
-//	炸弹    7（包括对王在内
 
 // 每种牌的信息
 struct CARDS_DATA
@@ -109,7 +93,7 @@ public:
 			Poke* card = dynamic_cast<Poke*>(_children.at(i));
 			if (card != NULL)
 			{
-				card->setPosition(i*30, 0);
+				card->setPosition(i*30/SCALE_FACTOR, 0);
 			}
 		}
 	}

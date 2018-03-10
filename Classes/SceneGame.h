@@ -31,6 +31,8 @@ public:
 	void callbackQiangDiZhu2(cocos2d::Node* node);
 	void callbackQiangDiZhu3(cocos2d::Node* node);
 
+	void callbackJieSuan(cocos2d::Node* node);
+
 	void update(float delta);
 	void OutCard(float delta);
 
@@ -46,24 +48,22 @@ public:
 	void initCards();
 
 	cocos2d::CCArray* getArrPlayerOut() { return _arrPlayerOut; }
-
-	//ÆÁÄ»½ØÍ¼
-	void capture(Ref* sender);
-	//½ØÍ¼ºóÖ´ÐÐafterCapture
-	void afterCapture(bool succeed, const std::string& outputFile);
     
     CREATE_FUNC(SceneGame);
 
-protected:
-
-	std::vector<PokeInfo> _vecDiPai;
+public:
 
 	Player* _player1;
 	Player* _player2;
 	Player* _player3;
 
+protected:
+
+	std::vector<PokeInfo> _vecDiPai;
+
 	BottomCardZone* _bottomCardZone;
 
+	cocos2d::Menu*	_menuBack;
 	cocos2d::Menu*	_menuChuPai;
 	cocos2d::Menu*	_menuQiangDiZhu;
 	cocos2d::Menu*	_menuReady;

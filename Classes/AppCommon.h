@@ -27,10 +27,4 @@ CARDS_DATA PanDuanPaiXing(cocos2d::CCArray* cards);//≈–∂œ≈∆–Õ
 CARDS_DATA PanDuanPaiXing(std::vector<PokeInfo>& cards);//≈–∂œ≈∆–Õ
 CARDS_DATA PanDuanPaiXing(std::vector<int>& cards);//≈–∂œ≈∆–Õ
 
-
-//////////////////////////////////////////////////////////////////////////
-//Ωÿ∆¡∫Ø ˝
-//////////////////////////////////////////////////////////////////////////
-cocos2d::RenderTexture* ScreenShot(const bool bIsSave, std::function<void(cocos2d::RenderTexture*, const std::string&)> pFuncCallback);
-
 #endif //__APPCOMMON_H__
