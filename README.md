@@ -6,8 +6,8 @@
 实现了不同平台的屏幕适配方案，成功移植到安卓并运行。
 
 ## 运行截图
-![示例](https://gitee.com/Ray1024/doudizhu/blob/master/test1.png)
-![示例](https://gitee.com/Ray1024/doudizhu/blob/master/test2.png)
+![示例](https://gitee.com/Ray1024/doudizhu/raw/master/test1.png)
+![示例](https://gitee.com/Ray1024/doudizhu/raw/master/test2.png)
 
 ## 其他
 图片和音频资源均来源于网络。
